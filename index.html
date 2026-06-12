@@ -1,0 +1,2575 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Restaurant-profitguard — 餐廳利潤小幫手</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ── 新功能元件樣式 ── */
+.nav-lang-wrap{display:inline-flex;align-items:center;gap:.3rem;font-size:1rem;cursor:pointer}
+.nav-lang{padding:.4rem .5rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-weight:700;font-size:.85rem;background:#fff;cursor:pointer;color:#1e293b}
+.nav-lang:hover{border-color:#ea580c}
+.about-sec{padding:4.5rem 1.5rem;text-align:center;background:#fff;border-top:1px solid #f1f5f9}
+@media(max-width:640px){.nav-lang{font-size:.78rem;padding:.3rem .35rem}}
+.seg{display:inline-flex;background:#f1f5f9;border-radius:.5rem;padding:.2rem;gap:.2rem}
+.seg-btn{padding:.32rem .85rem;border-radius:.375rem;font-size:.8rem;font-weight:700;color:#64748b;transition:all .15s}
+.seg-btn.act{background:#fff;color:#ea580c;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.6rem}
+.mkt-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:.6rem;padding:.6rem .75rem}
+.mkt-name{font-weight:700;font-size:.9rem;color:#1e293b}
+.mkt-price{font-size:1.05rem;font-weight:800;color:#ea580c;margin-top:.15rem}
+.mkt-meta{font-size:.72rem;color:#94a3b8;margin-top:.1rem}
+.dot-on{color:#10b981}.dot-off{color:#ef4444}
+.faq-item{border:1px solid #e2e8f0;border-radius:.6rem;margin-bottom:.6rem;overflow:hidden;background:#fff}
+.faq-q{padding:.85rem 1rem;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:#1e293b}
+.faq-q:hover{background:#f8fafc}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease;color:#475569;font-size:.875rem;line-height:1.7}
+.faq-item.open .faq-a{max-height:300px}
+.faq-item.open .faq-arw{transform:rotate(180deg)}
+.faq-arw{transition:transform .2s;color:#94a3b8}
+.faq-a-in{padding:0 1rem 1rem}
+.fb-form{display:flex;flex-direction:column;gap:.7rem;max-width:520px}
+.fb-form input,.fb-form textarea{border:1px solid #cbd5e1;border-radius:.5rem;padding:.65rem .8rem}
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.cmp-col{border:1px solid #e2e8f0;border-radius:.7rem;padding:.9rem}
+.cmp-col.now{border-color:#fdba74;background:linear-gradient(135deg,#fff7ed,#fff)}
+.cmp-h{font-size:.8rem;font-weight:800;margin-bottom:.5rem}
+.cmp-row{display:flex;justify-content:space-between;font-size:.82rem;padding:.3rem 0;border-bottom:1px dashed #e2e8f0}
+.delta-up{color:#10b981;font-weight:700}.delta-dn{color:#ef4444;font-weight:700}
+.sg-extra{margin-top:.6rem;padding:.6rem .75rem;background:#eff6ff;border-left:3px solid #3b82f6;border-radius:.4rem;font-size:.83rem;color:#1e40af;line-height:1.6}
+@media(max-width:640px){.cmp-grid{grid-template-columns:1fr}}
+</style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'PingFang TC','Microsoft JhengHei','Segoe UI',sans-serif;}
+body{background:#f8fafc;color:#1e293b;font-size:14px;overflow-x:hidden;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;font-size:inherit;}
+input,select,textarea{font-family:inherit;font-size:inherit;outline:none;}
+:root{
+  --brand:#ea580c;--brand-d:#c2410c;--brand-l:#fff7ed;--brand-b:#fed7aa;
+  --red:#ef4444;--green:#10b981;--blue:#3b82f6;--amber:#f59e0b;
+  --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;
+  --s400:#94a3b8;--s500:#64748b;--s600:#475569;--s700:#334155;--s800:#1e293b;
+}
+/* SCREENS */
+.screen{display:none!important;width:100%;min-height:100vh;}
+.screen.active{display:flex!important;width:100%;}
+#screen-landing.active{flex-direction:column;}
+#screen-onboard.active{flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff7ed 0%,#f8fafc 100%);padding:2rem;}
+#screen-dashboard.active{flex-direction:row;}
+
+/* TRANSITIONS */
+.screen.active{animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab-content{display:none;padding:2rem;animation:fadeIn .2s ease;}
+.tab-content.show{display:block;}
+.card-hover{transition:transform .18s,box-shadow .18s;}
+.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.1);}
+
+/* LANDING NAV */
+.l-nav{background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--s100);padding:.875rem 3rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:.5rem;font-size:1.25rem;font-weight:900;letter-spacing:-.02em;white-space:nowrap;}
+.logo .accent{color:var(--brand);}
+.nav-links{display:flex;align-items:center;gap:2rem;font-size:.875rem;color:var(--s500);}
+.nav-links span{cursor:pointer;transition:color .15s;padding:.25rem 0;border-bottom:2px solid transparent;}
+.nav-links span:hover{color:var(--s800);border-bottom-color:var(--brand);}
+.btn-cta{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.5625rem 1.375rem;border-radius:.625rem;font-weight:700;font-size:.875rem;box-shadow:0 4px 12px rgba(234,88,12,.3);transition:all .18s;}
+.btn-cta:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(234,88,12,.4);}
+
+/* HERO */
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6rem 2rem 4rem;text-align:center;background:linear-gradient(180deg,#fff7ed 0%,#fff 100%);}
+.hero-pill{display:inline-flex;align-items:center;gap:.5rem;background:var(--brand-l);color:var(--brand-d);border:1px solid var(--brand-b);padding:.375rem 1rem;border-radius:9999px;font-size:.8125rem;font-weight:600;margin-bottom:2rem;}
+.pulse{width:.5rem;height:.5rem;background:var(--brand);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.hero h1{font-size:3.5rem;font-weight:900;line-height:1.1;color:var(--s800);margin-bottom:1.5rem;letter-spacing:-.03em;}
+.hero h1 em{color:var(--brand);font-style:normal;}
+.hero p{font-size:1.125rem;color:var(--s500);max-width:38rem;line-height:1.75;margin-bottom:2.5rem;}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+.btn-hero-p{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.9375rem 2.25rem;border-radius:.875rem;font-size:1rem;font-weight:700;box-shadow:0 6px 20px rgba(234,88,12,.35);transition:all .2s;}
+.btn-hero-p:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(234,88,12,.45);}
+.btn-hero-o{background:#fff;color:var(--s700);border:1.5px solid var(--s200);padding:.9375rem 2.25rem;border-radius:.875rem;font-size:1rem;font-weight:600;transition:all .2s;}
+.btn-hero-o:hover{border-color:var(--brand);color:var(--brand);}
+
+/* FEATURE BLOCKS */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:56rem;margin:0 auto;padding:3rem 2rem;}
+.feature-card{background:#fff;border:1px solid var(--s100);border-radius:1.25rem;padding:1.75rem;transition:all .2s;}
+.feature-card:hover{border-color:var(--brand-b);box-shadow:0 8px 24px rgba(234,88,12,.08);}
+.f-icon{font-size:2rem;margin-bottom:1rem;}
+.f-title{font-size:1rem;font-weight:700;margin-bottom:.5rem;}
+.f-desc{font-size:.875rem;color:var(--s500);line-height:1.6;}
+
+/* STATS */
+.stats{background:#fff;border-top:1px solid var(--s100);border-bottom:1px solid var(--s100);padding:3rem 2rem;}
+.stats-inner{max-width:48rem;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:2rem;}
+.s-num{font-size:2.5rem;font-weight:900;color:var(--brand);margin-bottom:.25rem;}
+.s-label{font-size:.875rem;color:var(--s500);}
+
+/* PRICING */
+.pricing{padding:5rem 2rem;background:var(--s50);}
+.pricing h2{font-size:2rem;font-weight:900;text-align:center;margin-bottom:.75rem;}
+.pricing-sub{text-align:center;color:var(--s500);margin-bottom:3rem;font-size:.9375rem;}
+.p-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:56rem;margin:0 auto;}
+.p-card{background:#fff;border:1px solid var(--s200);border-radius:1.25rem;padding:2rem;position:relative;transition:all .2s;}
+.p-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.1);}
+.p-card.hot{background:linear-gradient(145deg,#ea580c,#c2410c);color:#fff;border:none;box-shadow:0 8px 30px rgba(234,88,12,.4);}
+.hot-tag{position:absolute;top:-1rem;left:50%;transform:translateX(-50%);background:#fbbf24;color:#78350f;font-size:.75rem;font-weight:800;padding:.3rem .9rem;border-radius:9999px;}
+.p-name{font-size:.875rem;font-weight:600;opacity:.7;margin-bottom:.75rem;}
+.p-price{font-size:2.5rem;font-weight:900;margin-bottom:.25rem;}
+.p-price sub{font-size:.9rem;font-weight:400;opacity:.6;}
+.p-meta{font-size:.8125rem;opacity:.6;margin-bottom:1.5rem;}
+.p-list{list-style:none;font-size:.875rem;margin-bottom:2rem;display:flex;flex-direction:column;gap:.625rem;}
+.p-list li{opacity:.85;}
+.p-list li::before{content:'✓  ';font-weight:700;}
+.btn-p{width:100%;padding:.75rem;border-radius:.625rem;font-size:.875rem;font-weight:700;transition:all .18s;}
+.btn-p-o{border:1.5px solid var(--brand);color:var(--brand);}
+.btn-p-o:hover{background:var(--brand-l);}
+.btn-p-w{background:#fff;color:var(--brand);}
+.btn-p-w:hover{background:#fef2ec;}
+.btn-p-g{border:1px solid var(--s300);color:var(--s600);}
+.btn-p-g:hover{background:var(--s50);}
+
+/* ONBOARD */
+.ob-card{background:#fff;border-radius:1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.12);width:100%;max-width:30rem;padding:2.25rem;}
+.ob-steps{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.ob-dots{display:flex;align-items:center;gap:.375rem;}
+.ob-dot{width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;transition:all .2s;}
+.ob-dot.act{background:var(--brand);color:#fff;}
+.ob-dot.done{background:var(--green);color:#fff;}
+.ob-dot.idle{background:var(--s200);color:var(--s400);}
+.ob-sep{flex:1;height:2px;background:var(--s100);max-width:2.5rem;}
+.ob-back{font-size:.8125rem;color:var(--s400);cursor:pointer;}
+.ob-back:hover{color:var(--s600);}
+.step{display:none;}
+.step.show{display:block;animation:fadeIn .2s ease;}
+.ob-title{font-size:1.5rem;font-weight:900;margin-bottom:.25rem;}
+.ob-sub{font-size:.8125rem;color:var(--s500);margin-bottom:1.5rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:.8125rem;font-weight:600;color:var(--s700);margin-bottom:.375rem;}
+.field input,.field select{width:100%;border:1.5px solid var(--s200);border-radius:.625rem;padding:.625rem 1rem;font-size:.875rem;transition:border .15s,box-shadow .15s;}
+.field input:focus,.field select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(234,88,12,.12);}
+.pos-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;}
+.pos-btn{border:1.5px solid var(--s200);border-radius:.625rem;padding:.625rem;text-align:center;font-size:.8125rem;cursor:pointer;transition:all .15s;}
+.pos-btn.sel{border-color:var(--brand);background:var(--brand-l);color:var(--brand-d);font-weight:700;}
+.slider-row{display:flex;align-items:center;gap:.75rem;}
+.slider-row input[type=range]{flex:1;accent-color:var(--brand);height:.25rem;}
+.slider-val{color:var(--brand);font-weight:800;min-width:2.75rem;text-align:right;}
+.hint{font-size:.75rem;color:var(--s400);margin-top:.25rem;}
+.upload-zone{border:2px dashed var(--s200);border-radius:.875rem;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1rem;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--brand);background:var(--brand-l);}
+.uz-icon{font-size:2.5rem;margin-bottom:.625rem;}
+.uz-title{font-weight:600;margin-bottom:.25rem;}
+.uz-sub{font-size:.75rem;color:var(--s400);}
+.sep-text{text-align:center;color:var(--s400);font-size:.8125rem;margin:.875rem 0;}
+.btn-2nd{width:100%;border:1.5px solid var(--s200);color:var(--s600);padding:.625rem;border-radius:.75rem;font-size:.8125rem;font-weight:500;transition:all .15s;margin-bottom:.5rem;}
+.btn-2nd:hover{background:var(--s50);border-color:var(--s300);}
+.qr-box{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:.875rem;padding:1.5rem;text-align:center;margin-bottom:1.25rem;}
+.qr-ph{width:7.5rem;height:7.5rem;background:var(--s200);border-radius:.75rem;margin:.75rem auto;display:flex;align-items:center;justify-content:center;color:var(--s400);font-size:.75rem;}
+.qr-title{font-weight:800;color:#00B900;font-size:.9375rem;margin-bottom:.25rem;}
+.qr-sub{font-size:.75rem;color:var(--s500);}
+.qr-img{width:9rem;height:9rem;display:block;margin:.625rem auto;border-radius:.5rem;border:3px solid #00B900;padding:4px;background:#fff;}
+/* LINE PREVIEW */
+.wx-preview{background:#ededed;border-radius:.875rem;padding:1rem;margin-top:1rem;}
+.lp-label{font-size:.6875rem;color:var(--s500);margin-bottom:.5rem;font-weight:700;letter-spacing:.05em;}
+.wx-card{background:#fff;border-radius:.625rem;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.wx-hd{background:#00B900;padding:.625rem .875rem;display:flex;align-items:center;gap:.5rem;}
+.wx-hd-icon{font-size:1.1rem;}
+.wx-hd-name{font-weight:700;color:#fff;font-size:.875rem;flex:1;}
+.wx-hd-time{font-size:.6875rem;color:rgba(255,255,255,.75);}
+.wx-body{padding:.75rem .875rem;}
+.wx-msg-title{font-size:.875rem;font-weight:700;color:#1a1a1a;margin-bottom:.625rem;}
+.wx-field{display:flex;justify-content:space-between;align-items:flex-start;padding:.3rem 0;border-bottom:1px solid #f5f5f5;font-size:.8125rem;}
+.wx-field:last-child{border-bottom:none;}
+.wx-fl{color:#999;}
+.wx-fv{color:#1a1a1a;font-weight:500;text-align:right;}
+.wx-fv.red{color:#ef4444;}
+.wx-ft{background:#fafafa;padding:.625rem .875rem;text-align:center;font-size:.8125rem;color:#00B900;font-weight:600;border-top:1px solid #f0f0f0;cursor:pointer;}
+/* BIND STATUS */
+.bind-status{display:none;background:linear-gradient(135deg,#f0fdf4,#fff);border:1.5px solid #86efac;border-radius:.875rem;padding:.875rem 1.125rem;text-align:center;margin-top:1rem;}
+.bind-status.show{display:block;}
+.bind-ok-icon{font-size:2rem;margin-bottom:.25rem;}
+.bind-ok-text{font-weight:700;color:#166534;font-size:.9375rem;}
+.bind-ok-sub{font-size:.8125rem;color:var(--s500);margin-top:.25rem;}
+.skip-btn{width:100%;color:var(--s400);padding:.5rem;font-size:.8125rem;transition:color .15s;margin-top:.5rem;}
+.skip-btn:hover{color:var(--s600);}
+.done-emoji{font-size:3.5rem;text-align:center;margin-bottom:1rem;animation:bounce .5s ease;}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.done-list{background:var(--s50);border-radius:.875rem;padding:1rem 1.25rem;margin-bottom:1.5rem;}
+.done-item{display:flex;align-items:center;gap:.625rem;font-size:.875rem;padding:.25rem 0;}
+.done-ck{color:var(--green);font-weight:700;}
+.btn-main{width:100%;background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.8125rem;border-radius:.875rem;font-size:.9375rem;font-weight:700;box-shadow:0 4px 14px rgba(234,88,12,.3);transition:all .2s;margin-top:.5rem;}
+.btn-main:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(234,88,12,.4);}
+
+/* DASHBOARD */
+.sidebar{width:13.5rem;background:#fff;border-right:1px solid var(--s100);display:flex;flex-direction:column;padding:1.25rem 0;height:100vh;position:sticky;top:0;flex-shrink:0;}
+.sb-logo{padding:.25rem 1rem 1.75rem;}
+.sb-logo .logo{display:block !important;white-space:normal !important;line-height:1.25 !important;font-size:.85rem !important;letter-spacing:-.01em !important;word-break:break-word;}
+.sb-logo .logo .accent{display:inline;}
+.sb-logo .sub{font-size:.6875rem;color:var(--s400);margin-top:.4rem;}
+.sb-nav{padding:0 .625rem;flex:1;}
+.sb-item{display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;border-radius:.625rem;font-size:.875rem;color:var(--s500);cursor:pointer;transition:all .18s;margin-bottom:.125rem;position:relative;}
+.sb-item:hover,.sb-item.act{background:rgba(234,88,12,.09);color:var(--brand);}
+.sb-item.act{font-weight:600;}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.625rem;border-radius:9999px;width:1.125rem;height:1.125rem;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.sb-user{padding:.875rem 1.25rem;border-top:1px solid var(--s100);display:flex;align-items:center;gap:.625rem;}
+.u-av{width:1.875rem;height:1.875rem;border-radius:50%;background:linear-gradient(135deg,#fef3c7,#fde68a);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#92400e;flex-shrink:0;}
+.u-name{font-size:.8125rem;font-weight:600;}
+.u-role{font-size:.6875rem;color:var(--s400);}
+
+/* DASH MAIN */
+.dash-main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0;}
+.dash-hdr{background:#fff;border-bottom:1px solid var(--s100);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;}
+.dh-title{font-size:1.0625rem;font-weight:800;}
+.dh-sub{font-size:.6875rem;color:var(--s400);margin-top:.125rem;}
+.dh-live{color:var(--green);}
+.hdr-btns{display:flex;gap:.625rem;align-items:center;}
+.btn-s{padding:.375rem .875rem;border-radius:.5rem;font-size:.8125rem;font-weight:600;transition:all .18s;}
+.btn-so{border:1px solid var(--s200);color:var(--s500);}
+.btn-so:hover{background:var(--s50);}
+.btn-sp{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;box-shadow:0 2px 8px rgba(234,88,12,.25);}
+.btn-sp:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(234,88,12,.35);}
+.btn-sp:disabled{opacity:.6;transform:none;cursor:not-allowed;}
+
+/* SCAN PROGRESS */
+.scan-bar{display:none;background:linear-gradient(135deg,var(--brand-l),#fff);border-bottom:1px solid var(--brand-b);padding:.75rem 2rem;}
+.scan-bar.show{display:flex;align-items:center;gap:1rem;}
+.scan-text{font-size:.8125rem;font-weight:600;color:var(--brand-d);}
+.scan-track{flex:1;background:var(--brand-b);border-radius:9999px;height:.375rem;overflow:hidden;}
+.scan-fill{height:100%;background:var(--brand);border-radius:9999px;width:0%;transition:width .3s ease;}
+.scan-pct{font-size:.75rem;color:var(--brand-d);font-weight:700;min-width:2.5rem;text-align:right;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi{background:#fff;border:1px solid var(--s100);border-radius:.875rem;padding:1.25rem;transition:all .18s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07);}
+.kpi.warn{background:linear-gradient(135deg,#fef2f2,#fff);border-color:#fecaca;}
+.kpi.good{background:linear-gradient(135deg,#f0fdf4,#fff);border-color:#bbf7d0;}
+.k-label{font-size:.6875rem;color:var(--s400);margin-bottom:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.k-label.warn{color:#f87171;}
+.k-label.good{color:#34d399;}
+.k-val{font-size:2rem;font-weight:900;color:var(--s800);line-height:1;}
+.k-val.warn{color:#dc2626;}
+.k-val.good{color:var(--green);}
+.k-meta{font-size:.6875rem;color:var(--s400);margin-top:.375rem;}
+.k-meta.up{color:var(--green);}
+.k-meta.dn{color:var(--red);}
+
+/* ALERT BANNER */
+.alert-banner{background:linear-gradient(135deg,#fffbeb,#fff);border:1.5px solid #fde68a;border-radius:.875rem;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.875rem;}
+.ab-icon{font-size:1.375rem;flex-shrink:0;}
+.ab-title{font-size:.875rem;font-weight:700;color:#92400e;}
+.ab-sub{font-size:.75rem;color:#b45309;margin-top:.125rem;}
+.ab-btn{margin-left:auto;font-size:.75rem;color:#92400e;border:1px solid #fde68a;padding:.3125rem .875rem;border-radius:.5rem;white-space:nowrap;flex-shrink:0;font-weight:600;transition:background .15s;}
+.ab-btn:hover{background:#fef9c3;}
+
+/* TABLE CARD */
+.t-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);overflow:hidden;}
+.t-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--s100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+.t-title{font-size:.9375rem;font-weight:700;color:var(--s700);}
+.f-tabs{display:flex;gap:.375rem;}
+.ftab{padding:.3125rem .875rem;border-radius:.5rem;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.ftab.act{background:var(--brand);color:#fff;}
+.ftab:not(.act){color:var(--s500);}
+.ftab:not(.act):hover{background:var(--s100);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--s50);padding:.625rem 1.5rem;text-align:left;font-size:.6875rem;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.05em;}
+th.r{text-align:right;}th.c{text-align:center;}
+td{padding:.875rem 1.5rem;border-top:1px solid rgba(241,245,249,.6);font-size:.875rem;}
+td.r{text-align:right;}td.c{text-align:center;}
+tr.data-row{cursor:pointer;transition:background .12s;}
+tr.data-row:hover td{background:#fafafa;}
+tr.data-row.filtered{display:none;}
+.badge{display:inline-flex;align-items:center;padding:.25rem .625rem;border-radius:9999px;font-size:.6875rem;font-weight:700;}
+.bw{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.bo{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;}
+.bm{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}
+.r-red{color:#dc2626;font-weight:800;}
+.r-grn{color:var(--green);font-weight:800;}
+.r-blu{color:var(--blue);font-weight:800;}
+.ai-txt{color:var(--s400);font-size:.75rem;max-width:14rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* AI SUGGESTIONS */
+.sg-hdr{margin-bottom:1.5rem;}
+.sg-hdr h2{font-size:1.125rem;font-weight:800;margin-bottom:.375rem;}
+.sg-hdr p{font-size:.875rem;color:var(--s400);}
+.sg-list{display:flex;flex-direction:column;gap:1rem;}
+.sg-card{background:#fff;border-radius:.875rem;border:1px solid #fecaca;padding:1.375rem;transition:all .18s;}
+.sg-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);}
+.sg-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;}
+.sg-name{font-size:.9375rem;font-weight:800;color:var(--s800);}
+.sg-sub{font-size:.75rem;color:var(--red);margin-top:.125rem;}
+.sg-acts{display:flex;gap:.5rem;flex-shrink:0;}
+.btn-ign{font-size:.75rem;border:1px solid var(--s200);color:var(--s500);padding:.3125rem .75rem;border-radius:.5rem;transition:all .15s;}
+.btn-ign:hover{background:var(--s50);}
+.btn-ado{font-size:.75rem;background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.3125rem .75rem;border-radius:.5rem;font-weight:700;transition:all .15s;}
+.btn-ado:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(234,88,12,.3);}
+.sg-body{background:linear-gradient(135deg,#fffbeb,#fff);border:1px solid #fef3c7;border-radius:.625rem;padding:.875rem 1rem;font-size:.875rem;color:#92400e;line-height:1.7;margin-bottom:.75rem;}
+.sg-meta{display:flex;gap:1.5rem;font-size:.6875rem;color:var(--s400);flex-wrap:wrap;}
+.sg-adopted{background:linear-gradient(135deg,#f0fdf4,#fff);border:1px solid #bbf7d0;border-radius:.875rem;padding:1rem 1.375rem;display:flex;align-items:center;gap:.75rem;font-size:.875rem;color:#166534;}
+.sg-adopted .ck{font-size:1.25rem;}
+
+/* HISTORY */
+.h-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.h-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);padding:1.5rem;}
+.h-title{font-size:.9375rem;font-weight:700;color:var(--s700);margin-bottom:1.25rem;}
+.bar-chart{display:flex;align-items:flex-end;gap:.5rem;height:7.5rem;padding-bottom:.25rem;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:.375rem;flex:1;}
+.bar{border-radius:.25rem .25rem 0 0;width:100%;transition:height .5s ease;cursor:pointer;position:relative;}
+.bar:hover{filter:brightness(1.1);}
+.bar-lbl{font-size:.625rem;color:var(--s400);}
+.h-note{font-size:.6875rem;color:var(--green);margin-top:.75rem;font-weight:600;}
+.hb-list{display:flex;flex-direction:column;gap:.625rem;}
+.hb-row{display:flex;align-items:center;gap:.5rem;font-size:.75rem;}
+.hb-name{width:5.5rem;color:var(--s600);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+.hb-track{flex:1;background:var(--s100);border-radius:9999px;height:.4375rem;overflow:hidden;}
+.hb-fill{height:100%;border-radius:9999px;transition:width .6s ease;}
+.hb-val{width:2.75rem;text-align:right;font-weight:700;font-size:.8125rem;}
+.trend-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);padding:1.5rem;}
+.trend-title{font-size:.9375rem;font-weight:700;color:var(--s700);margin-bottom:1.25rem;}
+
+/* BRANCHES */
+.br-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
+.br-card{background:#fff;border-radius:.875rem;border:1px solid var(--s200);padding:1.375rem;transition:all .18s;}
+.br-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07);}
+.br-card.main{border:2px solid var(--brand-b);box-shadow:0 4px 16px rgba(234,88,12,.1);}
+.br-card.add{border:2px dashed var(--s200);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;color:var(--s400);min-height:9rem;}
+.br-card.add:hover{border-color:var(--brand-b);color:var(--brand);background:var(--brand-l);}
+.br-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem;}
+.br-name{font-weight:800;font-size:.9375rem;}
+.br-tag{font-size:.6875rem;padding:.1875rem .5rem;border-radius:9999px;font-weight:700;}
+.br-tag.m{background:#fef3c7;color:#c2410c;}
+.br-tag.g{background:#d1fae5;color:#065f46;}
+.br-tag.w{background:#fef3c7;color:#92400e;}
+.br-meta{font-size:.8125rem;color:var(--s500);margin-bottom:.875rem;}
+.br-prog{display:flex;align-items:center;gap:.5rem;}
+.prog-track{flex:1;background:var(--s100);border-radius:9999px;height:.4375rem;}
+.prog-fill{height:.4375rem;border-radius:9999px;transition:width .5s ease;}
+.prog-fill.brand{background:var(--brand);}
+.prog-fill.green{background:var(--green);}
+.prog-fill.red{background:var(--red);}
+.prog-pct{font-size:.6875rem;font-weight:700;}
+.prog-pct.brand{color:var(--brand);}
+.prog-pct.green{color:var(--green);}
+.prog-pct.red{color:var(--red);}
+.add-plus{font-size:2rem;margin-bottom:.375rem;}
+
+/* SETTINGS */
+.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.st-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);padding:1.375rem;}
+.st-title{font-size:.875rem;font-weight:800;color:var(--s700);margin-bottom:1.125rem;padding-bottom:.625rem;border-bottom:1px solid var(--s100);}
+.st-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;font-size:.875rem;}
+.st-row:last-child{margin-bottom:0;}
+.st-label{color:var(--s600);}
+.st-row select,.st-row input[type=number]{border:1px solid var(--s200);border-radius:.5rem;padding:.375rem .625rem;font-size:.8125rem;}
+.toggle{width:2.75rem;height:1.375rem;border-radius:9999px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:var(--s200);}
+.toggle-k{position:absolute;top:.1875rem;width:1rem;height:1rem;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.toggle.on .toggle-k{left:1.5rem;}
+.toggle.off .toggle-k{left:.1875rem;}
+.btn-exp{font-size:.75rem;border:1px solid var(--brand-b);color:var(--brand);padding:.3125rem .75rem;border-radius:.5rem;font-weight:600;transition:all .15s;}
+.btn-exp:hover{background:var(--brand-l);}
+.st-muted{color:var(--s400);font-size:.8125rem;}
+.st-badge{background:#fff7ed;color:var(--brand-d);font-weight:800;font-size:.875rem;}
+.btn-cancel{width:100%;margin-top:.875rem;border:1px solid var(--s200);color:var(--s500);padding:.5rem;border-radius:.5rem;font-size:.8125rem;transition:all .15s;}
+.btn-cancel:hover{background:var(--s50);}
+
+/* MENU MANAGEMENT */
+.mm-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;}
+.mm-search{display:flex;align-items:center;gap:.5rem;border:1px solid var(--s200);border-radius:.625rem;padding:.375rem .875rem;background:#fff;}
+.mm-search input{border:none;font-size:.875rem;width:12rem;}
+.cost-warn{background:#fffbeb;border:1px solid #fef3c7;border-radius:.625rem;padding:.75rem 1rem;font-size:.8125rem;color:#b45309;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem;}
+.modal.open{display:flex;animation:fadeIn .18s ease;}
+.modal-box{background:#fff;border-radius:1.25rem;box-shadow:0 30px 80px rgba(0,0,0,.2);width:100%;max-width:30rem;max-height:90vh;overflow-y:auto;animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mb-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.375rem 1.5rem;border-bottom:1px solid var(--s100);}
+.mb-title{font-size:1.0625rem;font-weight:900;}
+.mb-close{font-size:1.5rem;color:var(--s400);line-height:1;transition:color .15s;}
+.mb-close:hover{color:var(--s700);}
+.mb-body{padding:1.375rem 1.5rem;}
+.mb-stats{background:var(--s50);border-radius:.75rem;padding:1rem;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:.5rem;}
+.mb-sl{font-size:.6875rem;color:var(--s400);margin-bottom:.25rem;font-weight:600;}
+.mb-sv{font-size:1.0625rem;font-weight:800;}
+.mb-advice{border-radius:.75rem;padding:1rem 1.125rem;font-size:.875rem;line-height:1.7;margin-bottom:1.25rem;}
+.mb-advice.warn{background:linear-gradient(135deg,#fffbeb,#fff);border:1px solid #fef3c7;color:#92400e;}
+.mb-advice.ok{background:linear-gradient(135deg,#f0fdf4,#fff);border:1px solid #bbf7d0;color:#166534;}
+.mb-ingred{margin-bottom:1.25rem;}
+.mb-i-title{font-size:.8125rem;font-weight:700;color:var(--s600);margin-bottom:.625rem;}
+.ingred-list{display:flex;flex-direction:column;gap:.375rem;}
+.ingred-row{display:flex;align-items:center;justify-content:space-between;font-size:.8125rem;padding:.375rem .625rem;background:var(--s50);border-radius:.375rem;}
+.ingred-name{color:var(--s700);}
+.ingred-cost{font-weight:600;color:var(--s600);}
+.ingred-cost.high{color:var(--red);}
+.mb-total{display:flex;justify-content:space-between;font-size:.875rem;font-weight:700;padding:.625rem .625rem 0;border-top:1px solid var(--s100);margin-top:.25rem;}
+.mb-foot{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:1.25rem 1.5rem;border-top:1px solid var(--s100);}
+.btn-mg{padding:.6875rem;border-radius:.75rem;font-size:.875rem;font-weight:600;transition:all .18s;}
+.btn-mg-ghost{border:1px solid var(--s200);color:var(--s600);}
+.btn-mg-ghost:hover{background:var(--s50);}
+.btn-mg-p{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;box-shadow:0 3px 10px rgba(234,88,12,.25);}
+.btn-mg-p:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(234,88,12,.35);}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--s800);color:#fff;padding:.875rem 1.25rem;border-radius:.75rem;font-size:.875rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:none;align-items:center;gap:.625rem;min-width:16rem;}
+.toast.show{display:flex;animation:toastIn .25s ease;}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.toast.success{background:var(--green);}
+.toast.warn{background:var(--amber);color:#1e293b;}
+.toast.info{background:var(--blue);}
+
+/* ═══════════════════════════════════════════
+   響應式設計 — 平板（≤1024px）
+═══════════════════════════════════════════ */
+@media(max-width:1024px){
+  .features{grid-template-columns:repeat(2,1fr);padding:2rem 1.5rem;}
+  .p-grid{grid-template-columns:repeat(2,1fr);gap:1.25rem;}
+  .p-grid .p-card:last-child{grid-column:1/-1;}
+  .stats-inner{grid-template-columns:repeat(3,1fr);gap:1rem;}
+  /* Dashboard 垂直堆疊（!important 覆蓋 #screen-dashboard.active 的 row） */
+  #screen-dashboard.active{flex-direction:column !important;}
+  .sidebar{
+    width:100%;height:auto;min-height:unset;
+    flex-direction:row;align-items:center;
+    padding:.75rem 1rem;flex-wrap:nowrap;
+    overflow-x:auto;gap:.25rem;
+  }
+  .sb-logo{margin-bottom:0;margin-right:auto;flex-shrink:0;}
+  .sb-nav{display:flex;flex-direction:row;flex:unset;padding:0;}
+  .sb-item{margin-bottom:0;white-space:nowrap;flex-shrink:0;}
+  .sb-user{border-top:none;padding:.25rem .5rem;margin-left:auto;flex-shrink:0;}
+  .dash-main{overflow-y:auto;}
+}
+
+/* ═══════════════════════════════════════════
+   響應式設計 — 手機（≤768px）
+═══════════════════════════════════════════ */
+@media(max-width:768px){
+  /* 導覽列：隱藏連結，保留 CTA 按鈕 */
+  .l-nav{padding:.875rem 1.25rem;}
+  .nav-links span{display:none;}          /* 隱藏文字連結，保留「免費試用」按鈕 */
+  .hero{padding:5rem 1.25rem 3rem;}
+  .hero h1{font-size:2rem;line-height:1.3;}
+  .hero p{font-size:1rem;}
+  .hero-btns{flex-direction:column;align-items:stretch;gap:.75rem;}
+  .hero-btns button,.hero-btns a{width:100%;text-align:center;}
+
+  /* 功能區 */
+  .features{grid-template-columns:1fr;padding:2rem 1.25rem;gap:1rem;}
+  .feature-card{padding:1.5rem;}
+
+  /* 數據列 */
+  .stats{padding:2rem 1.25rem;}
+  .stats-inner{grid-template-columns:1fr;gap:1rem;text-align:left;}
+  .s-num{font-size:2rem;}
+
+  /* 定價 */
+  .pricing{padding:3rem 1.25rem;}
+  .p-grid{grid-template-columns:1fr;gap:1rem;}
+  .p-card{padding:1.75rem 1.5rem;}
+
+  /* Onboarding 卡片 */
+  #screen-onboard{padding:1.25rem;}
+  .ob-card{padding:1.5rem;border-radius:1rem;}
+
+  /* Dashboard 佈局（!important 覆蓋 #screen-dashboard.active 的 row） */
+  #screen-dashboard.active{flex-direction:column !important;}
+  .sidebar{
+    width:100%;height:auto;min-height:unset;
+    flex-direction:row;align-items:center;
+    padding:.625rem 1rem;flex-wrap:nowrap;
+    overflow-x:auto;gap:.25rem;
+    position:sticky;top:0;z-index:50;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  .sb-logo{flex-shrink:0;margin-bottom:0;margin-right:.75rem;}
+  .sb-logo .sub{display:none;}
+  .sb-nav{display:flex;flex-direction:row;flex:unset;padding:0;}
+  .sb-item{
+    flex-shrink:0;padding:.5rem .75rem;
+    border-radius:.5rem;white-space:nowrap;
+    margin-bottom:0;font-size:.8125rem;
+  }
+  .sb-user{display:none;}
+  .dash-main{padding:0;}
+  /* Dashboard 標頭 */
+  .dash-hdr{padding:.875rem 1rem;flex-wrap:wrap;gap:.5rem;}
+  .dh-title{font-size:1rem;}
+  .tab-content{padding:1rem;}
+
+  /* KPI 卡片：4欄→2欄 */
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.75rem;}
+  .kpi{padding:1rem;}
+  .k-val{font-size:1.75rem;}
+
+  /* 資料表格：橫向滾動 */
+  .t-card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{min-width:600px;}
+  .ai-txt{max-width:8rem;}
+
+  /* AI 建議卡片 */
+  .sg-card{padding:1rem;}
+  .sg-top{flex-wrap:wrap;gap:.5rem;}
+  .sg-meta{flex-wrap:wrap;gap:.375rem;}
+  .sg-acts{flex-wrap:nowrap;}
+
+  /* 歷史趨勢 */
+  .h-grid{grid-template-columns:1fr;}
+  .h-card{overflow-x:auto;}
+  .bar-chart{min-width:360px;}
+
+  /* Modal：從底部滑上 */
+  .modal{align-items:flex-end;}
+  .modal-box{
+    max-width:100%;
+    border-radius:1.25rem 1.25rem 0 0;
+    max-height:85vh;
+  }
+
+  /* Toast：底部全寬 */
+  .toast{
+    bottom:0;right:0;left:0;
+    border-radius:.75rem .75rem 0 0;
+    min-width:unset;width:100%;
+    justify-content:center;
+  }
+
+  /* 設定頁面 */
+  .st-grid{grid-template-columns:1fr !important;}
+  .st-card{padding:1.25rem;}
+
+  /* 門市管理 */
+  .br-grid{grid-template-columns:1fr !important;}
+
+  /* 警示橫幅 */
+  .alert-banner{flex-wrap:wrap;}
+  .ab-btn{margin-left:0;margin-top:.25rem;}
+}
+
+/* ═══════════════════════════════════════════
+   響應式設計 — 小手機（≤400px）
+═══════════════════════════════════════════ */
+@media(max-width:400px){
+  .hero h1{font-size:1.75rem;}
+  .kpi-grid{grid-template-columns:1fr;}
+  .ob-steps{gap:.25rem;}
+  .ob-dot{width:1.625rem;height:1.625rem;font-size:.6875rem;}
+  .hdr-btns .btn-so{display:none;}
+}
+
+/* ══════════ 方案切換器（米白底 + 品牌橘） ══════════ */
+.plan-switcher{background:linear-gradient(135deg,#FFF7ED 0%,#FFEFD5 100%);color:#7C2D12;padding:.75rem 2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;border-bottom:1px solid #FED7AA;position:sticky;top:0;z-index:25}
+.ps-label{font-size:.78rem;color:#9A3412;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.ps-pills{display:flex;gap:.4rem;background:rgba(255,255,255,.6);padding:.25rem;border-radius:999px;border:1px solid rgba(234,88,12,.15)}
+.ps-pill{padding:.45rem 1rem;border-radius:999px;font-size:.82rem;cursor:pointer;color:#9A3412;font-weight:500;transition:all .2s;white-space:nowrap;border:1px solid transparent}
+.ps-pill:hover{background:rgba(234,88,12,.08)}
+.ps-pill.act{background:linear-gradient(135deg,#EA580C,#C2410C);color:#fff;font-weight:700;box-shadow:0 2px 8px rgba(234,88,12,.35)}
+.ps-pill .pp-price{font-size:.7rem;opacity:.75;margin-left:.35rem}
+.ps-pill.act .pp-price{color:#FFEDD5;opacity:1}
+.ps-hint{font-size:.72rem;color:#9A3412;opacity:.7;margin-left:auto}
+
+/* 鎖定 / 升級遮罩 - 大卡片用 */
+.feature-locked{position:relative;overflow:hidden}
+.feature-locked::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.78);backdrop-filter:blur(2px);z-index:5;pointer-events:none;border-radius:inherit}
+.feature-locked .lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center;padding:1rem;pointer-events:auto;cursor:pointer}
+.feature-locked .lock-overlay .lo-icon{font-size:1.6rem;margin-bottom:.35rem}
+.feature-locked .lock-overlay .lo-text{font-weight:700;font-size:.92rem;color:#0f172a;margin-bottom:.25rem}
+.feature-locked .lock-overlay .lo-sub{font-size:.74rem;color:#64748b;margin-bottom:.55rem}
+.feature-locked .lock-overlay .lo-btn{padding:.4rem 1rem;background:linear-gradient(135deg,#2563EB,#0369A1);color:#fff;border:0;border-radius:999px;font-size:.78rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+
+/* sidebar 項目專用：細窄列的鎖定樣式（不蓋全遮罩） */
+.sb-item.feature-locked{opacity:.5;cursor:not-allowed}
+.sb-item.feature-locked::after{display:none !important}
+.sb-item.feature-locked .lock-overlay{position:static;inset:auto;display:inline-flex;flex-direction:row;align-items:center;padding:0;margin-left:auto;background:none}
+.sb-item.feature-locked .lock-overlay .lo-icon,
+.sb-item.feature-locked .lock-overlay .lo-text,
+.sb-item.feature-locked .lock-overlay .lo-sub,
+.sb-item.feature-locked .lock-overlay .lo-btn{display:none}
+.sb-item.feature-locked::before{content:'🔒';margin-left:auto;font-size:.85rem;opacity:.7}
+
+/* 訂閱卡內的單行鎖定（API 金鑰） */
+.st-row.feature-locked{opacity:.5}
+.st-row.feature-locked::after{display:none !important}
+.st-row.feature-locked .lock-overlay{position:static;inset:auto;display:inline-flex;padding:0;background:none}
+.st-row.feature-locked .lock-overlay .lo-icon,
+.st-row.feature-locked .lock-overlay .lo-text,
+.st-row.feature-locked .lock-overlay .lo-sub{display:none}
+.st-row.feature-locked .lock-overlay .lo-btn{padding:.2rem .6rem;font-size:.7rem;box-shadow:none}
+
+/* 全成本毛利率區塊（標準版以上才有） */
+.fullcost-card{background:linear-gradient(135deg,#E0F2FE 0%,#F0F9FF 100%);border:1px solid #BAE6FD;border-radius:14px;padding:1.25rem;margin-bottom:1.25rem}
+.fc-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.fc-title{font-size:1rem;font-weight:700;color:#0369A1;display:flex;align-items:center;gap:.5rem}
+.fc-tag{padding:.2rem .6rem;border-radius:999px;background:#0369A1;color:#fff;font-size:.68rem;font-weight:700}
+.fc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem}
+@media (max-width:880px){.fc-grid{grid-template-columns:repeat(2,1fr)}}
+.fc-cell{background:#fff;padding:.7rem .85rem;border-radius:10px;border:1px solid #E0F2FE;position:relative;transition:all .15s}
+.fc-cell.editable{cursor:pointer}
+.fc-cell.editable:hover{border-color:#0369A1;box-shadow:0 2px 8px rgba(3,105,161,.15);transform:translateY(-1px)}
+.fc-cell.editable::after{content:'✏️';position:absolute;top:.4rem;right:.5rem;font-size:.75rem;opacity:.4;transition:opacity .15s}
+.fc-cell.editable:hover::after{opacity:1}
+.fc-cell .fcl{font-size:.7rem;color:#64748b;margin-bottom:.2rem}
+.fc-cell .fcv{font-size:1.05rem;font-weight:700;color:#0f172a}
+.fc-cell .fcm{font-size:.66rem;color:#94a3b8;margin-top:.1rem}
+.fc-cell-add{background:#fff;border:1.5px dashed #93C5FD;color:#0369A1;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;font-weight:600;font-size:.85rem;min-height:80px;transition:all .15s}
+.fc-cell-add:hover{background:#EFF6FF;border-color:#0369A1;border-style:solid}
+.fc-cell-add .add-icon{font-size:1.4rem;margin-bottom:.15rem}
+.fc-comparison{margin-top:.85rem;padding:.7rem .9rem;background:rgba(255,255,255,.7);border-radius:10px;border:1px dashed #BAE6FD;font-size:.82rem;color:#0f172a}
+.fc-comparison b{color:#dc2626}
+.fc-del{position:absolute;top:.35rem;right:.45rem;background:#fee;color:#dc2626;border:0;border-radius:6px;font-size:.65rem;padding:.1rem .35rem;cursor:pointer;opacity:0;transition:opacity .15s;z-index:2}
+.fc-cell:hover .fc-del{opacity:1}
+
+/* 成本編輯 Modal */
+.cost-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.cost-modal.show{display:flex}
+.cm-box{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.cm-hdr{padding:1rem 1.5rem;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#F0F9FF,#EFF6FF)}
+.cm-title{font-size:1.05rem;font-weight:700;color:#0369A1}
+.cm-x{background:none;border:0;font-size:1.5rem;color:#64748b;cursor:pointer;line-height:1}
+.cm-tabs{display:flex;border-bottom:1px solid #E5E7EB;background:#F8FAFC}
+.cm-tab{flex:1;padding:.7rem;text-align:center;cursor:pointer;font-size:.85rem;color:#64748b;border-bottom:2px solid transparent;font-weight:500}
+.cm-tab.act{color:#0369A1;border-bottom-color:#0369A1;font-weight:700;background:#fff}
+.cm-body{padding:1.25rem 1.5rem;overflow:auto;flex:1}
+.cm-pane{display:none}
+.cm-pane.act{display:block}
+.cm-input{width:100%;padding:.6rem .8rem;border:1px solid #CBD5E1;border-radius:8px;font-size:1rem;margin-bottom:.5rem;font-family:inherit}
+.cm-input:focus{outline:0;border-color:#0369A1;box-shadow:0 0 0 3px rgba(3,105,161,.15)}
+.cm-label{font-size:.78rem;color:#475569;margin-bottom:.3rem;font-weight:600;display:block}
+.cm-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.6rem}
+.cm-btn{padding:.55rem 1rem;border-radius:8px;border:0;cursor:pointer;font-weight:600;font-size:.88rem}
+.cm-btn-p{background:linear-gradient(135deg,#0369A1,#0284C7);color:#fff}
+.cm-btn-s{background:#F1F5F9;color:#475569}
+.cm-ftr{padding:.85rem 1.5rem;border-top:1px solid #E5E7EB;display:flex;justify-content:space-between;gap:.5rem;background:#FAFAFA}
+.cm-ftr-r{display:flex;gap:.5rem}
+.cm-total{font-size:.95rem;font-weight:700;color:#0369A1;display:flex;align-items:center}
+
+/* 員工表 */
+.emp-tbl{width:100%;font-size:.82rem;border-collapse:collapse}
+.emp-tbl th{background:#F0F9FF;color:#0369A1;padding:.45rem .35rem;text-align:left;border-bottom:1px solid #BAE6FD;font-weight:700;font-size:.74rem}
+.emp-tbl td{padding:.35rem;border-bottom:1px solid #F1F5F9}
+.emp-tbl td input,.emp-tbl td select{width:100%;padding:.3rem .4rem;border:1px solid #E2E8F0;border-radius:5px;font-size:.78rem;font-family:inherit}
+.emp-tbl td.subt{font-weight:700;color:#0369A1;text-align:right;padding-right:.5rem}
+.emp-del{background:#fee;color:#dc2626;border:0;border-radius:5px;padding:.15rem .4rem;cursor:pointer;font-size:.75rem}
+.emp-add{margin-top:.6rem;padding:.45rem 1rem;background:#EFF6FF;color:#0369A1;border:1px dashed #93C5FD;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;width:100%}
+.emp-add:hover{background:#DBEAFE}
+
+/* 子項目分項輸入 */
+.sub-item{display:grid;grid-template-columns:1fr 1fr auto;gap:.4rem;margin-bottom:.4rem}
+.sub-add{padding:.4rem;background:#EFF6FF;color:#0369A1;border:1px dashed #93C5FD;border-radius:6px;cursor:pointer;font-size:.78rem;text-align:center;font-weight:600}
+
+@media (max-width:880px){
+  .plan-switcher{padding:.6rem 1rem;gap:.5rem}
+  .ps-label{display:none}
+  .ps-hint{display:none}
+  .ps-pill{padding:.35rem .7rem;font-size:.75rem}
+  .ps-pill .pp-price{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SCREEN 1: LANDING ══════════ -->
+<div id="screen-landing" class="screen active">
+  <nav class="l-nav">
+    <div class="logo" onclick="showScreen('screen-landing')" style="cursor:pointer">🍽️ Restaurant-<span class="accent">profitguard</span></div>
+    <div class="nav-links">
+      <span onclick="scrollToSection('features')">功能</span><span onclick="scrollToSection('about')">關於我們</span><span onclick="scrollToSection('pricing')">定價</span>
+      <label class="nav-lang-wrap" title="Language">🌐
+        <select class="lang-select nav-lang" onchange="applyLang(this.value)" aria-label="Language">
+          <option value="zh-TW">繁體中文</option>
+          <option value="zh-CN">简体中文</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <button class="btn-cta" id="nav-login" style="background:#06C755;box-shadow:0 4px 12px rgba(6,199,85,.35)" onclick="lineLogin()">LINE 登入</button>
+      <button class="btn-cta" onclick="showScreen('screen-onboard')">免費試用 14 天</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-pill"><span class="pulse"></span>新興創業項目 · 預計服務台灣中小型餐廳</div>
+    <h1>每天早上 7:30<br><em>AI 主動告訴你</em><br>哪道菜在虧錢</h1>
+    <p>串接你的菜單，自動計算毛利率。低於警戒線立刻推播 LINE 通知，並附上 AI 改善建議。串接農業部每日食材行情，成本自動更新。不用懂技術，5 分鐘上線，隨時取消。</p>
+    <div class="hero-btns">
+      <button class="btn-hero-p" onclick="showScreen('screen-onboard')">免費開始 — 不需信用卡</button>
+      <button class="btn-hero-o" onclick="showScreen('screen-dashboard')">查看 Demo →</button>
+    </div>
+  </section>
+
+  <div class="features" id="features">
+    <div class="feature-card card-hover">
+      <div class="f-icon">📡</div>
+      <div class="f-title">每日自動掃描</div>
+      <div class="f-desc">每天早上 7:30 自動執行，掃描全部菜色毛利率，無需人工操作，結果直達你的 LINE。</div>
+    </div>
+    <div class="feature-card card-hover">
+      <div class="f-icon">🤖</div>
+      <div class="f-title">AI 精準建議</div>
+      <div class="f-desc">不只告訴你「哪道菜有問題」，還告訴你「怎麼調整食材用量、調多少售價」，有依據可執行。</div>
+    </div>
+    <div class="feature-card card-hover">
+      <div class="f-icon">🏪</div>
+      <div class="f-title">多門市管理</div>
+      <div class="f-desc">一個帳號管理多家門市，總部即時看到各店毛利健康狀況，異常門市立即標紅。</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stats-inner">
+      <div><div class="s-num">3.2%</div><div class="s-label">平均毛利率提升</div></div>
+      <div><div class="s-num">5min</div><div class="s-label">上線所需時間</div></div>
+      <div><div class="s-num">14天</div><div class="s-label">免費試用，隨時取消</div></div>
+    </div>
+  </div>
+
+  <div class="pricing" id="pricing">
+    <h2>簡單定價，按品牌付費</h2>
+    <div class="pricing-sub">所有方案均含 14 天免費試用，無需綁定信用卡</div>
+    <div class="p-grid">
+      <div class="p-card card-hover">
+        <div class="p-name">基礎版 Starter</div>
+        <div class="p-price">NT$899<sub>/月</sub></div>
+        <div class="p-meta">1 分店 · 100 道菜</div>
+        <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#FFF4E6;color:#C77700;font-size:.72rem;font-weight:600;margin-bottom:.5rem">食材成本掃描</div>
+        <ul class="p-list"><li>食材毛利每日自動掃描</li><li>LINE 即時預警推播</li><li>AI 改善建議（10次/月）</li><li>CSV 批量匯入食材清單</li><li>毛利警戒線自訂</li></ul>
+        <button class="btn-p btn-p-o" onclick="showScreen('screen-onboard')">開始試用</button>
+      </div>
+      <div class="p-card hot card-hover">
+        <div class="hot-tag">最受歡迎</div>
+        <div class="p-name">標準版 Growth</div>
+        <div class="p-price">NT$1,499<sub>/月</sub></div>
+        <div class="p-meta">3 分店 · 500 道菜</div>
+        <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#E0F2FE;color:#0369A1;font-size:.72rem;font-weight:600;margin-bottom:.5rem">✨ 真實全成本毛利率</div>
+        <ul class="p-list"><li>所有基礎版功能</li><li><b>固定成本分攤計算（房租／水電／人力）</b></li><li><b>真實全成本毛利率分析</b></li><li>歷史報表 &amp; 毛利趨勢圖</li><li>跨品牌彙整報告</li><li>AI 建議無限次・PDF 匯出</li></ul>
+        <button class="btn-p btn-p-w" onclick="showScreen('screen-onboard')">開始試用</button>
+      </div>
+      <div class="p-card card-hover">
+        <div class="p-name">品牌版 Enterprise</div>
+        <div class="p-price" style="color:#94a3b8">訂製</div>
+        <div class="p-meta">無限分店 · 無限菜色</div>
+        <ul class="p-list"><li>所有標準版功能</li><li>多分店集中管理</li><li>POS 系統對接</li><li>REST API 串接</li><li>1 對 1 顧問服務</li><li>簽保密協議 (NDA)</li></ul>
+        <button class="btn-p btn-p-g" onclick="showToast('info','我們的銷售團隊將在 24 小時內聯絡你！')">聯絡我們</button>
+      </div>
+    </div>
+  </div>
+  <div class="about-sec" id="about">
+    <h2 style="font-size:1.6rem;font-weight:800;margin-bottom:1rem">關於我們</h2>
+    <p style="font-size:1.1rem;color:#ea580c;font-weight:800;margin-bottom:1.1rem">「讓每一道菜，都值得被端上桌。」</p>
+    <p style="max-width:580px;margin:0 auto 1.1rem;color:#475569;line-height:1.9">Restaurant-profitguard 誕生於東海大學的創業團隊。我們走訪商圈時發現：許多老闆在食材漲價的浪潮裡，直到月底結帳才知道自己白做工。我們相信，毛利監控不該是大企業的特權——用 LINE 和 AI，讓每一位小店老闆都能在第一時間掌握自己的數字。</p>
+    <p style="color:#64748b;font-size:.9rem">創辦人：羅謙（Jason）・東海大學　|　聯絡：<a href="mailto:jason0980393088@gmail.com" style="color:#ea580c;font-weight:700">jason0980393088@gmail.com</a></p>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN 2: ONBOARD ══════════ -->
+<div id="screen-onboard" class="screen">
+  <div class="ob-card">
+    <div class="ob-steps">
+      <div class="ob-dots">
+        <div class="ob-dot act" id="d1">1</div>
+        <div class="ob-sep"></div>
+        <div class="ob-dot idle" id="d2">2</div>
+        <div class="ob-sep"></div>
+        <div class="ob-dot idle" id="d3">3</div>
+        <div class="ob-sep"></div>
+        <div class="ob-dot idle" id="d4">4</div>
+      </div>
+      <span class="ob-back" onclick="showScreen('screen-landing')">← 返回</span>
+    </div>
+
+    <div id="ob1" class="step show">
+      <div class="ob-title">歡迎使用餐廳利潤小幫手</div>
+      <div class="ob-sub">先建立你的品牌，只需 30 秒</div>
+      <div class="field"><label>品牌 / 公司名稱</label><input value="鼎泰豐餐飲集團"></div>
+      <div class="field"><label>餐廳類型</label><select id="restaurant-type" onchange="setRestaurantType(this.value)"><option value="chinese">中式料理</option><option value="japanese">日式料理</option><option value="taiwanese">台式小吃</option><option value="western">西餐</option><option value="drinks">飲料店</option></select></div>
+      <div class="field"><label>品牌定位</label>
+        <div class="pos-row">
+          <div class="pos-btn sel" onclick="selPos(this)">高端精緻</div>
+          <div class="pos-btn" onclick="selPos(this)">中高價位</div>
+          <div class="pos-btn" onclick="selPos(this)">平價實惠</div>
+        </div>
+      </div>
+      <div class="field"><label>毛利警戒線</label>
+        <div class="slider-row">
+          <input type="range" min="10" max="50" value="25" oninput="document.getElementById('sv').textContent=this.value+'%'">
+          <span class="slider-val" id="sv">25%</span>
+        </div>
+        <div class="hint">低於此數值自動觸發 AI 警示</div>
+      </div>
+      <button class="btn-main" onclick="goOb(2)">下一步 →</button>
+    </div>
+
+    <div id="ob2" class="step">
+      <div class="ob-title">匯入你的菜單</div>
+      <div class="ob-sub">支援 Excel / CSV，或使用範例資料</div>
+      <div class="upload-zone" id="uz" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')">
+        <div class="uz-icon">📤</div>
+        <div class="uz-title">點擊或拖曳上傳 Excel / CSV</div>
+        <div class="uz-sub">支援 .xlsx .csv 格式，最大 10MB</div>
+      </div>
+      <input type="file" id="file-input" accept=".xlsx,.csv" style="display:none" onchange="if(this.files.length){showToast('success','📥 已選取：'+this.files[0].name+'，正在解析…');this.value='';goOb(3);}">
+      <div class="sep-text">— 或 —</div>
+      <button class="btn-2nd" onclick="showToast('success','📥 菜單範本下載中…')">📥 下載菜單範本（Excel）</button>
+      <button class="btn-main" onclick="goOb(3)">使用範例資料繼續 →</button>
+    </div>
+
+    <div id="ob3" class="step">
+      <div class="ob-title">綁定 LINE，接收推播通知</div>
+      <div class="ob-sub">有警示時主動推播，不需每天登入查看</div>
+      <div class="qr-box">
+        <div class="qr-title">📷 掃碼加入 LINE 官方帳號</div>
+        <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40663vbbit&size=160x160&color=00B900" style="border-radius:8px;" alt="LINE 官方帳號 QR Code" />
+        <div class="qr-sub">掃碼加入後，傳送「<strong>綁定</strong>」即完成</div>
+      </div>
+      <div class="wx-preview">
+        <div class="lp-label">📱 綁定後每天 07:30 收到</div>
+        <div class="wx-card">
+          <div class="wx-hd">
+            <span class="wx-hd-icon">🛡️</span>
+            <span class="wx-hd-name">餐廳利潤小幫手 LINE 官方帳號</span>
+            <span class="wx-hd-time">07:30</span>
+          </div>
+          <div class="wx-body">
+            <div class="wx-msg-title">⚠️ 菜單毛利率預警通知</div>
+            <div class="wx-field"><span class="wx-fl">掃描門市</span><span class="wx-fv">鼎泰豐 · 信義旗艦店</span></div>
+            <div class="wx-field"><span class="wx-fl">預警品項</span><span class="wx-fv red">3 道低於警戒線 25%</span></div>
+            <div class="wx-field"><span class="wx-fl">最低毛利</span><span class="wx-fv red">排骨蛋炒飯 12.8%</span></div>
+            <div class="wx-field"><span class="wx-fl">AI 建議</span><span class="wx-fv">已生成，可立即查看</span></div>
+          </div>
+          <div class="wx-ft" onclick="showToast('info','完成設定後，每天 07:30 點此連結即可查看 AI 建議')">查看 AI 改善建議 →</div>
+        </div>
+      </div>
+      <div class="bind-status" id="bind-result">
+        <div class="bind-ok-icon">✅</div>
+        <div class="bind-ok-text">LINE 綁定成功！</div>
+        <div class="bind-ok-sub">已綁定 LINE 帳號：王小明 ｜ 明日 07:30 開始推播</div>
+      </div>
+      <button class="btn-main" id="btn-bind-wx" style="margin-top:1rem" onclick="doLineBind()">已加入，驗證綁定 →</button>
+      <button class="skip-btn" onclick="goOb(4)">暫時跳過</button>
+    </div>
+
+    <div id="ob4" class="step">
+      <div class="done-emoji">🎉</div>
+      <div class="ob-title" style="text-align:center">設定完成！</div>
+      <div class="ob-sub" style="text-align:center;margin-bottom:1.5rem">餐廳利潤小幫手已開始監控你的菜單<br>每天早上 7:30 自動掃描並推播結果</div>
+      <div class="done-list">
+        <div class="done-item"><span class="done-ck">✓</span>品牌：鼎泰豐餐飲集團（高端精緻）</div>
+        <div class="done-item"><span class="done-ck">✓</span>已匯入 8 道菜色</div>
+        <div class="done-item"><span class="done-ck">✓</span>LINE 通知已綁定</div>
+        <div class="done-item"><span class="done-ck">✓</span>毛利警戒線：25%</div>
+        <div class="done-item"><span class="done-ck">✓</span>首次掃描將於明日 07:30 執行</div>
+      </div>
+      <button class="btn-main" onclick="showScreen('screen-dashboard')">進入 Dashboard →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN 3: DASHBOARD ══════════ -->
+<div id="screen-dashboard" class="screen">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="logo" style="font-size:1rem;cursor:pointer" onclick="showScreen('screen-landing')">🍽️ Restaurant-<span class="accent">profitguard</span></div>
+      <div class="sub">鼎泰豐 · 信義旗艦店</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-item act" onclick="swTab('overview',this)"><span>📊</span>總覽</div>
+      <div class="sb-item" onclick="swTab('menu',this)"><span>🍽️</span>菜單管理</div>
+      <div class="sb-item" onclick="swTab('suggestions',this)"><span>🤖</span>AI 建議<span class="sb-badge" id="sg-cnt">3</span></div>
+      <div class="sb-item" data-requires="growth" onclick="swTab('history',this)"><span>📈</span>歷史趨勢</div>
+      <div class="sb-item" data-requires="growth" onclick="swTab('branches',this)"><span>🏪</span>門市管理</div>
+      <div class="sb-item" onclick="swTab('settings',this)"><span>⚙️</span>系統設定</div>
+      <div class="sb-item" onclick="swTab('help',this)"><span>❓</span>常見問題</div>
+    </nav>
+    <div class="sb-user">
+      <div class="u-av">王</div>
+      <div><div class="u-name">王小明</div><div class="u-role">老闆</div></div>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <!-- ══════════ 方案切換器（Demo 體驗用） ══════════ -->
+    <div class="plan-switcher">
+      <span class="ps-label">👁 體驗方案</span>
+      <div class="ps-pills">
+        <div class="ps-pill" data-plan="starter" onclick="switchPlan('starter')">基礎版<span class="pp-price">NT$899</span></div>
+        <div class="ps-pill act" data-plan="growth" onclick="switchPlan('growth')">標準版<span class="pp-price">NT$1,499</span></div>
+        <div class="ps-pill" data-plan="enterprise" onclick="switchPlan('enterprise')">品牌版<span class="pp-price">訂製</span></div>
+      </div>
+      <span class="ps-hint">切換方案即時體驗不同介面 →</span>
+    </div>
+
+    <header class="dash-hdr">
+      <div>
+        <div class="dh-title" id="dh-title">今日總覽</div>
+        <div class="dh-sub">最後掃描：今日 07:30 · <span class="dh-live">● 營運中</span></div>
+      </div>
+      <div class="hdr-btns">
+        <button class="btn-s btn-so" onclick="exportReport()">📄 匯出報表</button>
+        <button class="btn-s btn-sp" id="scan-btn" onclick="runScan()">⚡ 立即掃描</button>
+      </div>
+    </header>
+
+    <div class="scan-bar" id="scan-bar">
+      <span class="scan-text">🔍 正在掃描菜單毛利率...</span>
+      <div class="scan-track"><div class="scan-fill" id="scan-fill"></div></div>
+      <span class="scan-pct" id="scan-pct">0%</span>
+    </div>
+
+    <!-- TAB: OVERVIEW -->
+    <div id="tab-overview" class="tab-content show">
+      <div class="kpi-grid">
+        <div class="kpi warn"><div class="k-label warn">⚠️ 需要關注</div><div class="k-val warn" id="warn-cnt">3</div><div class="k-meta" style="color:#f87171">低於警戒線 25%</div></div>
+        <div class="kpi good"><div class="k-label good">✅ 食材毛利率</div><div class="k-val good">51.3%</div><div class="k-meta up">↑ 較上月 +1.2%</div></div>
+        <div class="kpi" data-requires="growth" style="position:relative;min-height:120px;background:linear-gradient(135deg,#EFF6FF,#F0F9FF);border:1px solid #BAE6FD"><div class="k-label" style="color:#0369A1">🏢 全成本毛利率</div><div class="k-val" style="color:#0369A1"><span id="kpi-margin">28.7</span>%</div><div class="k-meta up">含房租／水電／人力分攤</div></div>
+        <div class="kpi" data-requires="growth" style="position:relative;min-height:120px;background:linear-gradient(135deg,#FEF2F2,#FEE2E2);border:1px solid #FCA5A5"><div class="k-label" style="color:#991B1B">💰 本月淨利</div><div class="k-val" style="color:#B91C1C">NT$<span id="kpi-profit">86,000</span></div><div class="k-meta">營收 − 總成本</div></div>
+      </div>
+
+      <!-- 全成本毛利率區塊（標準版以上才有） -->
+      <div class="fullcost-card" data-requires="growth">
+        <div class="fc-hdr">
+          <div class="fc-title">🏢 真實全成本毛利率分析</div>
+          <span class="fc-tag">標準版獨家</span>
+        </div>
+        <!-- 第一列：核心輸入項（食材自動匯入放第一個） -->
+        <div class="fc-grid">
+          <div class="fc-cell" style="background:linear-gradient(135deg,#F1F5F9,#E2E8F0);border-color:#94A3B8;cursor:not-allowed;position:relative" onclick="showToast('info','🔗 食材成本由菜單管理自動計算，無法手動修改')">
+            <div style="position:absolute;top:.4rem;right:.5rem;font-size:.6rem;background:#475569;color:#fff;padding:.1rem .35rem;border-radius:999px;font-weight:700">🔗 自動</div>
+            <div class="fcl" style="color:#475569">食材成本</div>
+            <div class="fcv" style="color:#1E293B">NT$<span class="fc-num" data-k="food">58200</span></div>
+            <div class="fcm" style="color:#64748B">從菜單同步</div>
+          </div>
+          <div class="fc-cell editable" onclick="openCostModal('revenue')" style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-color:#93C5FD"><div class="fcl" style="color:#1D4ED8">月營收</div><div class="fcv" style="color:#1E40AF">NT$<span class="fc-num" data-k="revenue">300000</span></div><div class="fcm">總收入</div></div>
+          <div class="fc-cell editable" onclick="openCostModal('rent')"><div class="fcl">房租分攤</div><div class="fcv">NT$<span class="fc-num" data-k="rent">45000</span></div><div class="fcm">月固定</div></div>
+          <div class="fc-cell editable" onclick="openCostModal('utility')"><div class="fcl">水電瓦斯</div><div class="fcv">NT$<span class="fc-num" data-k="utility">12800</span></div><div class="fcm">電/水/瓦斯/網路</div></div>
+        </div>
+        <!-- 第二列：人力 + 自訂 + 摘要 -->
+        <div class="fc-grid" style="margin-top:.65rem">
+          <div class="fc-cell editable" onclick="openCostModal('labor')"><div class="fcl">人力成本</div><div class="fcv">NT$<span class="fc-num" data-k="labor">98000</span></div><div class="fcm">員工計算器</div></div>
+          <div id="custom-cells-host" style="display:contents"></div>
+          <div class="fc-cell fc-cell-add" onclick="openCostModal('__new')"><div class="add-icon">＋</div>新增項目</div>
+        </div>
+        <!-- 第三列：自動計算結果 -->
+        <div class="fc-grid" style="margin-top:.65rem">
+          <div class="fc-cell" style="background:linear-gradient(135deg,#FEF3C7,#FEF9C3);border-color:#FDE68A"><div class="fcl">總成本</div><div class="fcv" style="color:#B45309">NT$<span class="fc-num" data-k="total">214000</span></div><div class="fcm">自動加總</div></div>
+          <div class="fc-cell" style="background:linear-gradient(135deg,#FEF2F2,#FEE2E2);border-color:#FCA5A5"><div class="fcl" style="color:#991B1B">💰 淨利</div><div class="fcv" style="color:#B91C1C">NT$<span class="fc-num" data-k="profit">86000</span></div><div class="fcm" id="fc-profit-meta">營收 − 總成本</div></div>
+          <div class="fc-cell" style="background:linear-gradient(135deg,#DCFCE7,#F0FDF4);border-color:#86EFAC;grid-column:span 2"><div class="fcl">全成本毛利率</div><div class="fcv" style="color:#15803D;font-size:1.3rem"><span class="fc-num" data-k="margin">28.7</span>%</div><div class="fcm" id="fc-margin-meta">標準 ≥ 25%</div></div>
+        </div>
+        <div class="fc-comparison">
+          📊 對照：僅看食材成本時毛利率為 <b>51.3%</b>，但扣除房租／水電／人力後，<b>真實全成本毛利率僅 <span id="fc-margin-inline">28.7</span>%</b>，每月實際淨利約 <b>NT$<span id="fc-profit-inline">86,000</span></b> — 這才是你口袋裡實際賺到的錢。
+        </div>
+      </div>
+
+      <div class="alert-banner">
+        <span class="ab-icon">⚠️</span>
+        <div>
+          <div class="ab-title">發現 3 道菜毛利率低於警戒線（25%）</div>
+          <div class="ab-sub">AI 已生成改善建議，建議本週內與廚房主管討論調整方案</div>
+        </div>
+        <button class="ab-btn" onclick="swTab('suggestions',document.querySelectorAll('.sb-item')[2])">查看建議 →</button>
+      </div>
+
+      <div class="t-card">
+        <div class="t-hdr">
+          <div class="t-title">菜單毛利一覽</div>
+          <div class="f-tabs">
+            <div class="ftab act" onclick="filterRows('all',this)">全部 (8)</div>
+            <div class="ftab" onclick="filterRows('warn',this)">⚠️ 警示 (3)</div>
+            <div class="ftab" onclick="filterRows('ok',this)">✅ 健康 (5)</div>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>菜色名稱</th><th class="r">售價</th><th class="r">總成本</th><th class="r">毛利率</th><th class="c">狀態</th><th>AI 建議摘要</th></tr></thead>
+          <tbody id="menu-rows">
+            <tr class="data-row" data-t="warn" onclick="openModal('crab')"><td>🦀 蟹粉小籠包（5個）</td><td class="r">NT$360</td><td class="r">NT$289</td><td class="r"><span class="r-red">19.4%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td><span class="ai-txt">⚠️ 減少蟹肉用量，售價調漲 5%…</span></td></tr>
+            <tr class="data-row" data-t="warn" onclick="openModal('shrimp')"><td>🍤 蝦仁燒賣（5個）</td><td class="r">NT$285</td><td class="r">NT$238</td><td class="r"><span class="r-red">16.5%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td><span class="ai-txt">⚠️ 微調蝦肉用量，降低採購成本…</span></td></tr>
+            <tr class="data-row" data-t="warn" onclick="openModal('rice')"><td>🍳 排骨蛋炒飯</td><td class="r">NT$405</td><td class="r">NT$353</td><td class="r"><span class="r-red">12.8%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td><span class="ai-txt">⚠️ 刪除高成本配菜，節省 6.5%…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('xlb')"><td>🥟 小籠包（10個）</td><td class="r">NT$405</td><td class="r">NT$130</td><td class="r"><span class="r-grn">67.9%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 維持定價，推薦搭配套餐…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('soup')"><td>🍲 元盅雞湯</td><td class="r">NT$405</td><td class="r">NT$85</td><td class="r"><span class="r-grn">79.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 提升食材品質，強化套餐搭配…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('taro')"><td>🟣 芋泥小籠包（5個）</td><td class="r">NT$195</td><td class="r">NT$17</td><td class="r"><span class="r-grn">91.3%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 毛利極佳，可作為招牌菜推廣…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('sour')"><td>🥣 酸辣湯</td><td class="r">NT$175</td><td class="r">NT$42</td><td class="r"><span class="r-grn">76.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 競爭力強，搭配主菜套餐…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('wonton')"><td>🌶️ 蝦肉紅油抄手</td><td class="r">NT$315</td><td class="r">NT$212</td><td class="r"><span class="r-blu">32.3%</span></td><td class="c"><span class="badge bm">💙 偏低</span></td><td><span class="ai-txt">✅ 微調售價至 NT$322，毛利提升…</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: MENU MANAGEMENT -->
+    <div id="tab-menu" class="tab-content">
+      <div class="mm-hdr">
+        <div style="font-size:1.125rem;font-weight:800">菜單管理</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <div class="mm-search"><span>🔍</span><input placeholder="搜尋菜色名稱…"></div>
+          <button class="btn-s btn-so" onclick="showToast('success','📥 菜單範本下載中…')">📥 下載範本</button>
+          <button class="btn-s btn-so" onclick="showToast('info','請選擇 .xlsx 或 .csv 檔案（最大 10MB）')">📤 匯入 Excel</button>
+          <button class="btn-s btn-sp" onclick="showToast('success','+ 新增菜色表單已開啟')">+ 新增菜色</button>
+        </div>
+      </div>
+      <div class="cost-warn">🔔 食材成本每週會變動，建議每月更新一次。<strong>上次更新：14 天前</strong><button class="btn-s btn-so" style="margin-left:auto;font-size:.75rem" onclick="showToast('success','✅ 成本資料更新完成，共更新 8 項食材價格')">更新成本</button></div>
+      <div class="t-card">
+        <div class="t-hdr"><div class="t-title">所有菜色（8 道）</div></div>
+        <table>
+          <thead><tr><th>菜色名稱</th><th class="r">售價</th><th class="r">食材成本</th><th class="r">毛利率</th><th class="c">狀態</th><th class="c">操作</th></tr></thead>
+          <tbody>
+            <tr class="data-row" onclick="openModal('crab')"><td>🦀 蟹粉小籠包（5個）</td><td class="r">NT$360</td><td class="r">NT$289</td><td class="r"><span class="r-red">19.4%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('crab')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('shrimp')"><td>🍤 蝦仁燒賣（5個）</td><td class="r">NT$285</td><td class="r">NT$238</td><td class="r"><span class="r-red">16.5%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('shrimp')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('rice')"><td>🍳 排骨蛋炒飯</td><td class="r">NT$405</td><td class="r">NT$353</td><td class="r"><span class="r-red">12.8%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('rice')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('xlb')"><td>🥟 小籠包（10個）</td><td class="r">NT$405</td><td class="r">NT$130</td><td class="r"><span class="r-grn">67.9%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('xlb')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('soup')"><td>🍲 元盅雞湯</td><td class="r">NT$405</td><td class="r">NT$85</td><td class="r"><span class="r-grn">79.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('soup')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('taro')"><td>🟣 芋泥小籠包（5個）</td><td class="r">NT$195</td><td class="r">NT$17</td><td class="r"><span class="r-grn">91.3%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('taro')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('sour')"><td>🥣 酸辣湯</td><td class="r">NT$175</td><td class="r">NT$42</td><td class="r"><span class="r-grn">76.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('sour')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('wonton')"><td>🌶️ 蝦肉紅油抄手</td><td class="r">NT$315</td><td class="r">NT$212</td><td class="r"><span class="r-blu">32.3%</span></td><td class="c"><span class="badge bm">💙 偏低</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('wonton')">編輯食材</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: AI SUGGESTIONS -->
+    <div id="tab-suggestions" class="tab-content">
+      <div class="sg-hdr"><h2>AI 改善建議</h2><p>針對低於警戒線的品項，AI 已生成具體優化方向，點擊「已採納」記錄執行狀態</p></div>
+
+      <!-- ── 當期 vs 上期 建議比對 ── -->
+      <div class="trend-card" style="margin-bottom:1.25rem">
+        <div class="trend-title" style="margin-bottom:.85rem">📊 當期 vs 上期 建議成效比對</div>
+        <div class="cmp-grid">
+          <div class="cmp-col">
+            <div class="cmp-h" style="color:#64748b">上期（5/22～6/4）</div>
+            <div class="cmp-row"><span>需改善菜色</span><span>4 道</span></div>
+            <div class="cmp-row"><span>平均毛利率</span><span>46.4%</span></div>
+            <div class="cmp-row"><span>已採納建議</span><span>2 項</span></div>
+            <div class="cmp-row" style="border:none"><span>預估月省成本</span><span>NT$2,800</span></div>
+          </div>
+          <div class="cmp-col now">
+            <div class="cmp-h" style="color:#ea580c">當期（6/5～6/8）</div>
+            <div class="cmp-row"><span>需改善菜色</span><span>3 道 <span class="delta-up">▼1</span></span></div>
+            <div class="cmp-row"><span>平均毛利率</span><span>51.3% <span class="delta-up">▲4.9%</span></span></div>
+            <div class="cmp-row"><span>已採納建議</span><span>5 項 <span class="delta-up">▲3</span></span></div>
+            <div class="cmp-row" style="border:none"><span>預估月省成本</span><span>NT$4,960 <span class="delta-up">▲77%</span></span></div>
+          </div>
+        </div>
+        <div class="h-note" style="margin-top:.85rem">✅ 採納 AI 建議後，本期需改善菜色減少 1 道、平均毛利率提升 4.9 個百分點，預估月省成本近翻倍。</div>
+      </div>
+
+      <div class="sg-list">
+        <div class="sg-card" id="sg-crab">
+          <div class="sg-top">
+            <div><div class="sg-name">🦀 蟹粉小籠包（5個）</div><div class="sg-sub">毛利率 19.4% — 低於警戒線 5.6%</div></div>
+            <div class="sg-acts"><button class="btn-ign" onclick="ignoreSg('sg-crab')">忽略</button><button class="btn-ado" onclick="adoptSg('sg-crab','蟹粉小籠包')">✓ 已採納</button></div>
+          </div>
+          <div class="sg-body">⚠️ 減少蟹肉和粉末成本，建議將蟹肉用量從 15g 降至 12g；替換高成本配菜，選擇經濟性配料。售價調漲幅度 5%（NT$360→NT$379），毛利率預計提高至 25%。</div>
+          <div class="sg-meta"><span>📉 依據：成本佔售價 80.6%</span><span>💡 預計節省：NT$15/道</span><span>📅 今日 07:30</span></div>
+          <div class="sg-extra">🤖 AI 補充建議：可推出「蟹粉系列套餐」搭配高毛利的芋泥小籠包（91%），以組合定價拉高整體客單毛利；並透過 LINE 提醒每週比較 3 家蟹肉供應商報價，鎖定低點進貨。</div>
+        </div>
+        <div class="sg-card" id="sg-shrimp">
+          <div class="sg-top">
+            <div><div class="sg-name">🍤 蝦仁燒賣（5個）</div><div class="sg-sub">毛利率 16.5% — 低於警戒線 8.5%</div></div>
+            <div class="sg-acts"><button class="btn-ign" onclick="ignoreSg('sg-shrimp')">忽略</button><button class="btn-ado" onclick="adoptSg('sg-shrimp','蝦仁燒賣')">✓ 已採納</button></div>
+          </div>
+          <div class="sg-body">⚠️ 微調蝦肉用量至 5.2 個，減少每份成本約 NT$18；替換高成本配菜，綜合成本降至 NT$209；售價調整至 NT$290，毛利率可提升至 28%。</div>
+          <div class="sg-meta"><span>📉 依據：成本佔售價 83.5%</span><span>💡 預計節省：NT$29/道</span><span>📅 今日 07:30</span></div>
+          <div class="sg-extra">🤖 AI 補充建議：蝦仁屬高波動食材，建議改用「冷凍白蝦」當基底、現流蝦僅作點綴，可降成本約 12%；旺季前可預先簽定週結報價鎖價。</div>
+        </div>
+        <div class="sg-card" id="sg-rice">
+          <div class="sg-top">
+            <div><div class="sg-name">🍳 排骨蛋炒飯</div><div class="sg-sub">毛利率 12.8% — 低於警戒線 12.2%</div></div>
+            <div class="sg-acts"><button class="btn-ign" onclick="ignoreSg('sg-rice')">忽略</button><button class="btn-ado" onclick="adoptSg('sg-rice','排骨蛋炒飯')">✓ 已採納</button></div>
+          </div>
+          <div class="sg-body">⚠️ 調整雞蛋用量由 3 個下調至 2 個，節省 4.8% 成本；刪除高成本青肝配菜節省 6.5%；售價維持 NT$405 不變，預計毛利率從 12.8% 提升至 17%。</div>
+          <div class="sg-meta"><span>📉 依據：成本佔售價 87.2%</span><span>💡 預計節省：NT$52/道</span><span>📅 今日 07:30</span></div>
+          <div class="sg-extra">🤖 AI 補充建議：排骨蛋炒飯為帶客主力，不宜大漲價；可改推「加 NT$30 升級套餐（附湯品）」提高客單，套餐毛利可拉高至 22%，比單漲售價更不影響翻桌。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORY -->
+    <div id="tab-history" class="tab-content">
+      <div style="font-size:1.125rem;font-weight:800;margin-bottom:1.5rem">毛利率歷史趨勢</div>
+      <div class="h-grid">
+        <div class="h-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
+            <div class="h-title" style="margin:0">毛利率趨勢</div>
+            <div class="seg" role="tablist">
+              <button class="seg-btn act" onclick="setTrend('month',this)">月</button>
+              <button class="seg-btn" onclick="setTrend('week',this)">週</button>
+              <button class="seg-btn" onclick="setTrend('day',this)">日</button>
+            </div>
+          </div>
+          <canvas id="trendChart" height="150"></canvas>
+          <div class="h-note" id="trend-note">↑ 近 6 個月整體毛利率持續改善 +3.2%（較去年同期）</div>
+        </div>
+        <div class="h-card">
+          <div class="h-title">各菜色毛利率分佈</div>
+          <div class="hb-list">
+            <div class="hb-row"><div class="hb-name">芋泥小籠包</div><div class="hb-track"><div class="hb-fill" style="width:91%;background:#10b981"></div></div><div class="hb-val" style="color:#10b981">91%</div></div>
+            <div class="hb-row"><div class="hb-name">元盅雞湯</div><div class="hb-track"><div class="hb-fill" style="width:79%;background:#10b981"></div></div><div class="hb-val" style="color:#10b981">79%</div></div>
+            <div class="hb-row"><div class="hb-name">酸辣湯</div><div class="hb-track"><div class="hb-fill" style="width:76%;background:#10b981"></div></div><div class="hb-val" style="color:#10b981">76%</div></div>
+            <div class="hb-row"><div class="hb-name">小籠包(10)</div><div class="hb-track"><div class="hb-fill" style="width:68%;background:#34d399"></div></div><div class="hb-val" style="color:#10b981">68%</div></div>
+            <div class="hb-row"><div class="hb-name">紅油抄手</div><div class="hb-track"><div class="hb-fill" style="width:32%;background:#3b82f6"></div></div><div class="hb-val" style="color:#3b82f6">32%</div></div>
+            <div class="hb-row"><div class="hb-name">蟹粉小籠包</div><div class="hb-track"><div class="hb-fill" style="width:19%;background:#ef4444"></div></div><div class="hb-val" style="color:#ef4444">19%</div></div>
+            <div class="hb-row"><div class="hb-name">蝦仁燒賣</div><div class="hb-track"><div class="hb-fill" style="width:16%;background:#ef4444"></div></div><div class="hb-val" style="color:#ef4444">16%</div></div>
+            <div class="hb-row"><div class="hb-name">排骨蛋炒飯</div><div class="hb-track"><div class="hb-fill" style="width:13%;background:#dc2626"></div></div><div class="hb-val" style="color:#ef4444">13%</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- ── 大盤行情面板（接後端 /api/market，農業部開放資料）── -->
+      <div class="trend-card" style="margin-top:1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem">
+          <div class="trend-title" style="margin:0">🥬 今日大盤食材行情　<span id="mkt-status" class="dot-off" style="font-size:.72rem;font-weight:700">● 連線中…</span></div>
+          <button class="btn-s btn-so" onclick="loadMarket()" style="padding:.4rem .8rem">🔄 重新整理</button>
+        </div>
+        <div id="mkt-body" style="color:#94a3b8;font-size:.875rem">正在從農業部開放資料載入即時批發行情…</div>
+        <div id="mkt-updated" style="font-size:.72rem;color:#94a3b8;margin-top:.6rem"></div>
+      </div>
+
+      <div class="trend-card">
+        <div class="trend-title">最近警示記錄</div>
+        <table>
+          <thead><tr><th>日期</th><th>菜色</th><th class="r">毛利率</th><th>AI 建議</th><th class="c">狀態</th></tr></thead>
+          <tbody>
+            <tr><td>今日 07:30</td><td>蟹粉小籠包</td><td class="r"><span class="r-red">19.4%</span></td><td><span class="ai-txt">⚠️ 減少蟹肉用量，漲價 5%</span></td><td class="c"><span class="badge bw">待處理</span></td></tr>
+            <tr><td>今日 07:30</td><td>蝦仁燒賣</td><td class="r"><span class="r-red">16.5%</span></td><td><span class="ai-txt">⚠️ 微調蝦肉用量</span></td><td class="c"><span class="badge bw">待處理</span></td></tr>
+            <tr><td>3天前</td><td>排骨蛋炒飯</td><td class="r"><span class="r-red">12.8%</span></td><td><span class="ai-txt">⚠️ 刪除高成本配菜</span></td><td class="c"><span class="badge" style="background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe">處理中</span></td></tr>
+            <tr><td>上週</td><td>紅油抄手</td><td class="r"><span class="r-blu">28.1%</span></td><td><span class="ai-txt">✅ 微調售價至 NT$322</span></td><td class="c"><span class="badge bo">已解決</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: BRANCHES -->
+    <div id="tab-branches" class="tab-content">
+      <div style="font-size:1.125rem;font-weight:800;margin-bottom:1.5rem">門市管理</div>
+      <div class="br-grid">
+        <div class="br-card main card-hover">
+          <div class="br-top"><div class="br-name">信義旗艦店</div><span class="br-tag m">主要門市</span></div>
+          <div class="br-meta">8 道菜 · 3 項警示 · 今日已掃描</div>
+          <div class="br-prog"><div class="prog-track"><div class="prog-fill brand" style="width:62%"></div></div><span class="prog-pct brand">62.5% 健康</span></div>
+        </div>
+        <div class="br-card card-hover">
+          <div class="br-top"><div class="br-name">大安門市</div><span class="br-tag g">狀況良好</span></div>
+          <div class="br-meta">12 道菜 · 1 項警示 · 今日已掃描</div>
+          <div class="br-prog"><div class="prog-track"><div class="prog-fill green" style="width:92%"></div></div><span class="prog-pct green">91.7% 健康</span></div>
+        </div>
+        <div class="br-card card-hover">
+          <div class="br-top"><div class="br-name">松山門市</div><span class="br-tag w">需要關注</span></div>
+          <div class="br-meta">10 道菜 · 4 項警示 · 今日已掃描</div>
+          <div class="br-prog"><div class="prog-track"><div class="prog-fill red" style="width:40%"></div></div><span class="prog-pct red" style="color:#ef4444">40.0% 健康</span></div>
+        </div>
+        <div class="br-card add card-hover" onclick="showToast('info','Growth 方案最多可新增 3 家門市，目前已使用 2 家，可再新增 1 家')">
+          <div class="add-plus">+</div>
+          <div style="font-size:.875rem;font-weight:600">新增門市</div>
+          <div style="font-size:.75rem;opacity:.7;margin-top:.25rem">Growth 方案可加至 3 家</div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-hdr"><div class="t-title">用戶權限管理</div><button class="btn-s btn-sp" style="font-size:.75rem" onclick="showToast('info','邀請郵件已傳送，等待對方接受')">+ 邀請成員</button></div>
+        <table>
+          <thead><tr><th>用戶</th><th>角色</th><th>可存取門市</th><th>最後登入</th><th class="c">操作</th></tr></thead>
+          <tbody>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#92400e">王</div>王小明</div></td><td><span class="badge" style="background:#f3e8ff;color:#6b21a8;border:1px solid #e9d5ff">👑 老闆</span></td><td style="color:#94a3b8">全部門市</td><td style="color:#94a3b8">剛剛</td><td class="c">—</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#1e40af">陳</div>陳美華</div></td><td><span class="badge" style="background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe">📋 經理</span></td><td style="color:#94a3b8">信義店</td><td style="color:#94a3b8">2小時前</td><td class="c"><button style="font-size:.75rem;color:#ef4444;border:1px solid #fecaca;padding:.2rem .5rem;border-radius:.375rem" onclick="this.textContent=this.textContent==='停用'?'已停用':'停用';this.style.opacity=this.textContent==='已停用'?'0.4':'1';showToast('warn','⚠️ 成員權限已變更')">停用</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#ffedd5;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#c2410c">林</div>林主廚</div></td><td><span class="badge" style="background:#ffedd5;color:#c2410c;border:1px solid #fed7aa">🍳 廚房</span></td><td style="color:#94a3b8">信義店（唯讀）</td><td style="color:#94a3b8">昨天</td><td class="c"><button style="font-size:.75rem;color:#ef4444;border:1px solid #fecaca;padding:.2rem .5rem;border-radius:.375rem" onclick="this.textContent=this.textContent==='停用'?'已停用':'停用';this.style.opacity=this.textContent==='已停用'?'0.4':'1';showToast('warn','⚠️ 成員權限已變更')">停用</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#166534">張</div>張採購</div></td><td><span class="badge" style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0">🛒 採購</span></td><td style="color:#94a3b8">全部門市（唯讀）</td><td style="color:#94a3b8">3天前</td><td class="c"><button style="font-size:.75rem;color:#ef4444;border:1px solid #fecaca;padding:.2rem .5rem;border-radius:.375rem" onclick="this.textContent=this.textContent==='停用'?'已停用':'停用';this.style.opacity=this.textContent==='已停用'?'0.4':'1';showToast('warn','⚠️ 成員權限已變更')">停用</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div id="tab-settings" class="tab-content">
+      <div style="font-size:1.125rem;font-weight:800;margin-bottom:1.5rem">系統設定</div>
+      <div class="st-grid">
+        <div class="st-card">
+          <div class="st-title">⚡ 掃描設定</div>
+          <div class="st-row"><span class="st-label">自動掃描時間</span><select class="scan-time-select" onchange="setScanTime(this.value)"><option value="07:30">每天 07:30</option><option value="07:00">每天 07:00</option><option value="08:00">每天 08:00</option><option value="09:00">每天 09:00</option></select></div>
+          <div class="st-row"><span class="st-label">毛利警戒線</span><div style="display:flex;align-items:center;gap:.375rem"><input type="number" value="25" style="width:3.5rem;text-align:center;border:1px solid var(--s200);border-radius:.375rem;padding:.3rem .5rem"><span style="color:var(--s400)">%</span></div></div>
+          <div class="st-row"><span class="st-label">AI 建議語言</span><select class="lang-select" onchange="applyLang(this.value)"><option value="zh-TW">繁體中文</option><option value="zh-CN">簡體中文</option><option value="en">English</option></select></div>
+          <div class="st-row"><span class="st-label">掃描失敗重試</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-title">🔔 通知設定</div>
+          <div class="st-row"><span class="st-label">LINE 推播通知</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+          <div class="st-row"><span class="st-label">Email 每日摘要</span><div class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+          <div class="st-row"><span class="st-label">成本更新提醒</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+          <div class="st-row"><span class="st-label">每週彙整報告</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-title">🔒 安全與資料</div>
+          <div class="st-row"><span class="st-label">隨時匯出全部資料</span><button class="btn-exp" onclick="showToast('success','📊 CSV 匯出中，稍後將自動下載')">匯出 CSV</button></div>
+          <div class="st-row"><span class="st-label">資料儲存地區</span><span class="st-muted">亞太（台灣）ap-northeast-1</span></div>
+          <div class="st-row" data-requires="enterprise" style="position:relative;min-height:48px"><span class="st-label">API 金鑰</span><button class="btn-exp" onclick="showToast('success','API 金鑰已複製到剪貼簿')">複製金鑰</button></div>
+          <div class="st-row"><span class="st-label">雙因素驗證</span><div class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-title">💳 訂閱方案</div>
+          <div class="st-row"><span class="st-label">當前方案</span><span class="badge st-badge">標準版 Growth NT$1,499/月</span></div>
+          <div class="st-row"><span class="st-label">到期日</span><span style="color:var(--s600)">2026 年 06 月 03 日</span></div>
+          <div class="st-row"><span class="st-label">門市額度</span><span style="color:var(--s600)">2 / 3</span></div>
+          <div class="st-row"><span class="st-label">本月 AI 用量</span><span style="color:var(--green);font-weight:600">847 / 無限</span></div>
+          <button class="btn-cancel" onclick="if(confirm('確定要取消訂閱嗎？取消後將立即降級為免費方案，資料保留 30 天。')){showToast('warn','訂閱已取消，帳號將於本月底降級')}">取消訂閱（立即生效）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HELP（常見問題 + 信箱回饋）-->
+    <div id="tab-help" class="tab-content">
+      <div style="font-size:1.125rem;font-weight:800;margin-bottom:1.5rem">常見問題與聯絡我們</div>
+      <div class="h-grid">
+        <div class="h-card">
+          <div class="h-title" style="margin-bottom:1rem">❓ 常見問題（FAQ）</div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">食材成本多久更新一次？<span class="faq-arw">▾</span></div>
+            <div class="faq-a"><div class="faq-a-in">系統每日清晨自動串接農業部大盤行情更新批發價；你也可在「歷史趨勢 → 大盤食材行情」手動重新整理。建議每月至少核對一次自家供應商實際進貨價。</div></div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">毛利率是怎麼算的？<span class="faq-arw">▾</span></div>
+            <div class="faq-a"><div class="faq-a-in">食材毛利率 =（售價 − 食材成本）÷ 售價。標準版另計「全成本毛利率」，會再扣除房租、水電、人力分攤，反映真實獲利。</div></div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">LINE 推播沒收到怎麼辦？<span class="faq-arw">▾</span></div>
+            <div class="faq-a"><div class="faq-a-in">請確認已完成綁定（傳「綁定」給官方帳號）且未封鎖帳號。系統每日 07:30 推播，可於系統設定調整時間。</div></div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">可以管理多家門市嗎？<span class="faq-arw">▾</span></div>
+            <div class="faq-a"><div class="faq-a-in">標準版最多管理 3 家門市，品牌版無上限並支援集中管理與權限分級，可在「門市管理」新增。</div></div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">我的資料安全嗎？<span class="faq-arw">▾</span></div>
+            <div class="faq-a"><div class="faq-a-in">資料儲存於亞太（台灣）區域，傳輸全程 HTTPS 加密；可隨時於系統設定一鍵匯出全部資料。</div></div>
+          </div>
+        </div>
+        <div class="h-card">
+          <div class="h-title" style="margin-bottom:1rem">✉️ 聯絡 / 意見回饋</div>
+          <form class="fb-form" onsubmit="return submitFeedback(event)">
+            <input type="text" id="fb-name" placeholder="你的稱呼" required>
+            <input type="email" id="fb-email" placeholder="你的 Email" required>
+            <textarea id="fb-msg" rows="5" placeholder="想反映的問題或建議…" required></textarea>
+            <button type="submit" class="btn-main" style="align-self:flex-start">送出回饋</button>
+          </form>
+          <div style="margin-top:1.1rem;font-size:.82rem;color:#64748b">或直接來信：<a href="mailto:jason0980393088@gmail.com" style="color:#ea580c;font-weight:700">jason0980393088@gmail.com</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL ══════════ -->
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="mb-hdr">
+      <div class="mb-title" id="m-title"></div>
+      <button class="mb-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="mb-body">
+      <div class="mb-stats">
+        <div><div class="mb-sl">售價</div><div class="mb-sv" id="m-price"></div></div>
+        <div><div class="mb-sl">總成本</div><div class="mb-sv" id="m-cost"></div></div>
+        <div><div class="mb-sl">毛利率</div><div class="mb-sv" id="m-margin"></div></div>
+      </div>
+      <div id="m-advice" class="mb-advice"></div>
+      <div class="mb-ingred">
+        <div class="mb-i-title">📋 食材成本明細</div>
+        <div id="m-ingred-list" class="ingred-list"></div>
+        <div id="m-total" class="mb-total"></div>
+      </div>
+    </div>
+    <div class="mb-foot">
+      <button class="btn-mg btn-mg-ghost" onclick="closeModal()">忽略此建議</button>
+      <button class="btn-mg btn-mg-p" onclick="adoptFromModal()">✓ 標記為已採納</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-icon"></span><span id="toast-msg"></span></div>
+
+<!-- ══════════ 成本編輯 Modal ══════════ -->
+<div class="cost-modal" id="cost-modal" onclick="if(event.target===this)closeCostModal()">
+  <div class="cm-box">
+    <div class="cm-hdr">
+      <div class="cm-title" id="cm-title">編輯成本</div>
+      <button class="cm-x" onclick="closeCostModal()">×</button>
+    </div>
+    <div class="cm-tabs" id="cm-tabs">
+      <div class="cm-tab act" data-pane="quick" onclick="switchCmTab('quick')">⚡ 快速輸入</div>
+      <div class="cm-tab" data-pane="detail" onclick="switchCmTab('detail')">📋 詳細項目</div>
+      <div class="cm-tab" data-pane="import" onclick="switchCmTab('import')">📥 Excel 匯入</div>
+    </div>
+    <div class="cm-body">
+      <!-- 快速輸入 -->
+      <div class="cm-pane act" id="cm-quick">
+        <div id="cm-name-row" style="display:none">
+          <label class="cm-label">項目名稱</label>
+          <input type="text" class="cm-input" id="cm-name" placeholder="例：行銷費用、雜支">
+        </div>
+        <label class="cm-label">金額（新台幣）</label>
+        <input type="number" class="cm-input" id="cm-amount" placeholder="0" inputmode="numeric">
+        <div style="font-size:.78rem;color:#64748b;margin-top:.5rem">直接輸入該項目的總金額，最快速</div>
+      </div>
+      <!-- 詳細項目（依類型動態載入：員工表 / 子項目分項） -->
+      <div class="cm-pane" id="cm-detail"></div>
+      <!-- Excel 匯入 -->
+      <div class="cm-pane" id="cm-import">
+        <label class="cm-label">上傳 CSV 檔（第一欄為項目名稱、第二欄為金額）</label>
+        <input type="file" class="cm-input" id="cm-file" accept=".csv,.txt" onchange="handleCSVImport(event)">
+        <div style="margin-top:.8rem;padding:.7rem;background:#F0F9FF;border-radius:8px;font-size:.78rem;color:#0369A1">
+          <b>CSV 範例格式：</b><br>
+          <code style="font-family:monospace;font-size:.75rem">電費,3500<br>水費,1200<br>瓦斯,2800<br>網路,1500</code>
+        </div>
+        <button class="cm-btn cm-btn-s" onclick="downloadCSVTemplate()" style="margin-top:.8rem;width:100%">📄 下載範例 CSV 範本</button>
+      </div>
+    </div>
+    <div class="cm-ftr">
+      <div class="cm-total" id="cm-total"></div>
+      <div class="cm-ftr-r">
+        <button class="cm-btn cm-btn-s" onclick="closeCostModal()">取消</button>
+        <button class="cm-btn cm-btn-p" onclick="saveCostModal()">儲存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 成本資料模型 ──────────────────────────────
+const COST_LABEL = { food:'食材成本', rent:'房租分攤', utility:'水電瓦斯', labor:'人力成本', revenue:'月營收' };
+const DEFAULTS = {
+  revenue: 300000, food: 58200, rent: 45000, utility: 12800, labor: 98000,
+  // 詳細結構
+  utility_items: [
+    { name:'電費', amount:7200 },
+    { name:'水費', amount:1800 },
+    { name:'瓦斯', amount:2300 },
+    { name:'網路', amount:1500 }
+  ],
+  employees: [
+    { name:'王小明', role:'店長', type:'monthly', wage:42000, hours:0, insurance:3500 },
+    { name:'李大華', role:'廚師', type:'monthly', wage:38000, hours:0, insurance:3000 },
+    { name:'陳小芳', role:'工讀生', type:'hourly', wage:200, hours:80, insurance:0 }
+  ],
+  custom: []   // [{ id, name, amount, items?:[{name,amount}] }]
+};
+let costs = JSON.parse(localStorage.getItem('rpg_costs')||'null') || JSON.parse(JSON.stringify(DEFAULTS));
+['utility_items','employees','custom'].forEach(k => { if(!Array.isArray(costs[k])) costs[k] = DEFAULTS[k]; });
+
+function calcUtility(){ return (costs.utility_items||[]).reduce((s,i)=>s+(+i.amount||0),0); }
+function calcEmpSubt(e){
+  if (e.type === 'hourly') return Math.round((+e.wage||0)*(+e.hours||0)) + (+e.insurance||0);
+  return (+e.wage||0) + (+e.insurance||0);
+}
+function calcLabor(){ return (costs.employees||[]).reduce((s,e)=>s+calcEmpSubt(e),0); }
+
+function renderCosts(){
+  // 子計算
+  costs.utility = calcUtility();
+  costs.labor = calcLabor();
+  // 渲染各 cell
+  ['revenue','food','rent','utility','labor'].forEach(k => {
+    const el = document.querySelector(`.fc-num[data-k="${k}"]`);
+    if (el) el.textContent = (costs[k]||0).toLocaleString();
+  });
+  // 自訂項目渲染
+  const host = document.getElementById('custom-cells-host');
+  if (host) {
+    host.innerHTML = (costs.custom||[]).map(c => `
+      <div class="fc-cell editable" onclick="openCostModal('custom:${c.id}')">
+        <button class="fc-del" onclick="event.stopPropagation();delCustom(${c.id})">刪除</button>
+        <div class="fcl">${escapeHtml(c.name)}</div>
+        <div class="fcv">NT$${(c.amount||0).toLocaleString()}</div>
+        <div class="fcm">自訂項目</div>
+      </div>
+    `).join('');
+  }
+  // 計算總計
+  const customSum = (costs.custom||[]).reduce((s,c)=>s+(+c.amount||0),0);
+  const total = (+costs.food||0)+(+costs.rent||0)+(+costs.utility||0)+(+costs.labor||0)+customSum;
+  const profit = (+costs.revenue||0) - total;
+  const margin = costs.revenue > 0 ? (profit/costs.revenue*100) : 0;
+  const set = (k,v) => { const e = document.querySelector(`.fc-num[data-k="${k}"]`); if(e) e.textContent = v; };
+  set('total', total.toLocaleString());
+  set('profit', profit.toLocaleString());
+  set('margin', margin.toFixed(1));
+  const idSet = (id,v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  idSet('fc-margin-inline', margin.toFixed(1));
+  idSet('fc-profit-inline', profit.toLocaleString());
+  idSet('kpi-margin', margin.toFixed(1));
+  idSet('kpi-profit', profit.toLocaleString());
+  const meta = document.getElementById('fc-margin-meta');
+  if (meta) meta.innerHTML = margin >= 25
+    ? `<span style="color:#15803D">✓ 健康（標準 ≥ 25%）</span>`
+    : `<span style="color:#dc2626">⚠ 偏低（標準 ≥ 25%）</span>`;
+  const pmeta = document.getElementById('fc-profit-meta');
+  if (pmeta) pmeta.innerHTML = profit > 0
+    ? `<span style="color:#15803D">營收 − 總成本（獲利中）</span>`
+    : `<span style="color:#dc2626">⚠ 虧損中</span>`;
+  localStorage.setItem('rpg_costs', JSON.stringify(costs));
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ── 成本編輯 Modal ──────────────────────────────
+let currentEditKey = null;
+function openCostModal(key){
+  currentEditKey = key;
+  const titleMap = {
+    revenue:'編輯月營收', food:'編輯食材成本', rent:'編輯房租分攤',
+    utility:'編輯水電瓦斯（可分項）', labor:'編輯人力成本（員工計算器）',
+    __new:'新增成本項目'
+  };
+  let title = titleMap[key];
+  let isCustom = false;
+  if (key && key.startsWith('custom:')) {
+    const id = +key.split(':')[1];
+    const c = costs.custom.find(x=>x.id===id);
+    title = `編輯：${c?c.name:'自訂項目'}`;
+    isCustom = true;
+  }
+  document.getElementById('cm-title').textContent = title || '編輯成本';
+  document.getElementById('cm-name-row').style.display = (key==='__new'||isCustom) ? 'block' : 'none';
+
+  // 預填值
+  const nameInput = document.getElementById('cm-name');
+  const amountInput = document.getElementById('cm-amount');
+  if (key === '__new') { nameInput.value = ''; amountInput.value = ''; }
+  else if (isCustom) {
+    const c = costs.custom.find(x=>+x.id===+key.split(':')[1]);
+    nameInput.value = c ? c.name : '';
+    amountInput.value = c ? c.amount : '';
+  } else {
+    amountInput.value = costs[key] || 0;
+  }
+
+  // 詳細頁內容
+  renderDetailPane(key);
+  // 顯示 / 隱藏 詳細 tab
+  const detailTab = document.querySelector('.cm-tab[data-pane="detail"]');
+  if (detailTab) detailTab.style.display = (key==='utility'||key==='labor') ? 'block' : 'none';
+  // 預設快速 tab
+  switchCmTab('quick');
+  document.getElementById('cost-modal').classList.add('show');
+}
+function closeCostModal(){ document.getElementById('cost-modal').classList.remove('show'); }
+function switchCmTab(name){
+  document.querySelectorAll('.cm-tab').forEach(t => t.classList.toggle('act', t.dataset.pane===name));
+  document.querySelectorAll('.cm-pane').forEach(p => p.classList.toggle('act', p.id==='cm-'+name));
+  updateCmTotal();
+}
+function updateCmTotal(){
+  const el = document.getElementById('cm-total');
+  if (!el) return;
+  if (currentEditKey === 'utility') el.textContent = '合計：NT$' + calcUtility().toLocaleString();
+  else if (currentEditKey === 'labor') el.textContent = '合計：NT$' + calcLabor().toLocaleString();
+  else el.textContent = '';
+}
+
+function renderDetailPane(key){
+  const pane = document.getElementById('cm-detail');
+  if (!pane) return;
+  if (key === 'utility') {
+    pane.innerHTML = `
+      <label class="cm-label">分項輸入（電/水/瓦斯/網路…）</label>
+      <div id="util-list">${(costs.utility_items||[]).map((it,i)=>`
+        <div class="sub-item">
+          <input class="cm-input" placeholder="項目名稱" value="${escapeHtml(it.name)}" onchange="costs.utility_items[${i}].name=this.value">
+          <input class="cm-input" type="number" placeholder="金額" value="${it.amount}" onchange="costs.utility_items[${i}].amount=+this.value||0;updateCmTotal()">
+          <button class="cm-btn cm-btn-s" onclick="costs.utility_items.splice(${i},1);renderDetailPane('utility');updateCmTotal()">刪除</button>
+        </div>`).join('')}</div>
+      <button class="sub-add" onclick="costs.utility_items.push({name:'',amount:0});renderDetailPane('utility');updateCmTotal()">＋ 新增子項目</button>
+    `;
+  } else if (key === 'labor') {
+    const empRow = (e,i) => {
+      const isMonthly = e.type==='monthly';
+      const wage = +e.wage||0, hrs = +e.hours||0, ins = +e.insurance||0;
+      const subt = calcEmpSubt(e);
+      const formula = isMonthly
+        ? `<span style="color:#0369A1">${wage.toLocaleString()}</span> + <span style="color:#0369A1">${ins.toLocaleString()}</span>`
+        : `<span style="color:#0369A1">${wage}</span> × <span style="color:#0369A1">${hrs}</span> + <span style="color:#0369A1">${ins.toLocaleString()}</span>`;
+      // 異常偵測：時薪模式但薪資 > 500，或月薪模式但薪資 < 1000
+      let warn = '';
+      if (!isMonthly && wage > 500) warn = `<div style="font-size:.65rem;color:#dc2626;margin-top:.15rem">⚠ 時薪偏高，確認是否該選「月薪」</div>`;
+      else if (isMonthly && wage > 0 && wage < 5000) warn = `<div style="font-size:.65rem;color:#dc2626;margin-top:.15rem">⚠ 月薪偏低，確認是否該選「時薪」</div>`;
+      return `
+        <tr>
+          <td><input value="${escapeHtml(e.name)}" onchange="costs.employees[${i}].name=this.value"></td>
+          <td><input value="${escapeHtml(e.role)}" onchange="costs.employees[${i}].role=this.value"></td>
+          <td><select onchange="costs.employees[${i}].type=this.value;renderDetailPane('labor');updateCmTotal()">
+            <option value="monthly" ${isMonthly?'selected':''}>月薪</option>
+            <option value="hourly" ${!isMonthly?'selected':''}>時薪</option>
+          </select></td>
+          <td>
+            <input type="number" value="${wage}" style="${!isMonthly?'background:#FFF7ED;border-color:#FED7AA':'background:#F0F9FF;border-color:#BAE6FD'}" placeholder="${isMonthly?'例 35000':'例 200'}" onchange="costs.employees[${i}].wage=+this.value||0;renderDetailPane('labor');updateCmTotal()">
+            <div style="font-size:.62rem;color:#94a3b8;margin-top:.1rem">${isMonthly?'月薪總額':'每小時'}</div>
+            ${warn}
+          </td>
+          <td><input type="number" value="${hrs}" ${isMonthly?'disabled style="opacity:.3;background:#F1F5F9"':''} placeholder="月時數" onchange="costs.employees[${i}].hours=+this.value||0;renderDetailPane('labor');updateCmTotal()"></td>
+          <td><input type="number" value="${ins}" placeholder="0" onchange="costs.employees[${i}].insurance=+this.value||0;renderDetailPane('labor');updateCmTotal()"></td>
+          <td class="subt">
+            NT$${subt.toLocaleString()}
+            <div style="font-size:.62rem;color:#94a3b8;font-weight:400;margin-top:.1rem">= ${formula}</div>
+          </td>
+          <td><button class="emp-del" onclick="costs.employees.splice(${i},1);renderDetailPane('labor');updateCmTotal()">×</button></td>
+        </tr>`;
+    };
+    pane.innerHTML = `
+      <label class="cm-label">員工列表（公式自動顯示在小計欄下方）</label>
+      <table class="emp-tbl">
+        <thead><tr><th>姓名</th><th>職位</th><th>類型</th><th>薪資</th><th>月時數</th><th>勞健保</th><th>小計（含公式）</th><th></th></tr></thead>
+        <tbody>${(costs.employees||[]).map(empRow).join('')}</tbody>
+      </table>
+      <button class="emp-add" onclick="costs.employees.push({name:'',role:'',type:'monthly',wage:30000,hours:0,insurance:2500});renderDetailPane('labor');updateCmTotal()">＋ 新增員工</button>
+      <div style="margin-top:.7rem;font-size:.75rem;color:#0f172a;background:linear-gradient(135deg,#F0F9FF,#EFF6FF);padding:.7rem .9rem;border-radius:8px;border-left:3px solid #0369A1">
+        📐 <b>公式</b>：<br>
+        ・<span style="color:#0369A1">月薪</span>：月薪總額 + 勞健保<br>
+        ・<span style="color:#C2410C">時薪</span>：時薪 × 月時數 + 勞健保<br>
+        📊 <b>勞健保參考</b>（含雇主負擔）：<br>
+        ・月薪 NT$26K ≈ NT$2,300　・NT$35K ≈ NT$3,100　・NT$45K ≈ NT$4,000
+      </div>
+    `;
+  }
+}
+
+function saveCostModal(){
+  const activeTab = document.querySelector('.cm-tab.act')?.dataset.pane;
+  const key = currentEditKey;
+  if (key === '__new') {
+    const name = document.getElementById('cm-name').value.trim();
+    const amt = parseInt(document.getElementById('cm-amount').value||'0',10);
+    if (!name) { showToast('error','請輸入項目名稱'); return; }
+    const id = Date.now();
+    costs.custom.push({ id, name, amount: amt });
+    showToast('success', `已新增：${name} NT$${amt.toLocaleString()}`);
+  } else if (key && key.startsWith('custom:')) {
+    const id = +key.split(':')[1];
+    const c = costs.custom.find(x=>x.id===id);
+    if (c) {
+      c.name = document.getElementById('cm-name').value.trim() || c.name;
+      c.amount = parseInt(document.getElementById('cm-amount').value||'0',10);
+    }
+    showToast('success', `已更新：${c.name}`);
+  } else if (activeTab === 'detail' && (key==='utility'||key==='labor')) {
+    showToast('success', `已儲存${COST_LABEL[key]}明細`);
+  } else {
+    const amt = parseInt(document.getElementById('cm-amount').value||'0',10);
+    if (isNaN(amt) || amt < 0) { showToast('error','請輸入正確金額'); return; }
+    costs[key] = amt;
+    showToast('success', `已更新${COST_LABEL[key]}：NT$${amt.toLocaleString()}`);
+  }
+  renderCosts();
+  closeCostModal();
+}
+
+function delCustom(id){
+  const c = costs.custom.find(x=>x.id===id);
+  if (!c) return;
+  if (!confirm(`刪除自訂項目「${c.name}」？`)) return;
+  costs.custom = costs.custom.filter(x=>x.id!==id);
+  renderCosts();
+  showToast('success', `已刪除：${c.name}`);
+}
+
+// CSV 匯入
+function handleCSVImport(ev){
+  const file = ev.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    const items = [];
+    lines.forEach(line => {
+      const [name, amt] = line.split(',').map(s=>s.trim().replace(/^"|"$/g,''));
+      if (name && amt) items.push({ name, amount: parseInt(amt.replace(/[^0-9]/g,''),10)||0 });
+    });
+    if (items.length === 0) { showToast('error','CSV 為空或格式錯誤'); return; }
+    const key = currentEditKey;
+    if (key === 'utility') costs.utility_items = items;
+    else if (key === '__new') {
+      const total = items.reduce((s,i)=>s+i.amount,0);
+      const id = Date.now();
+      costs.custom.push({ id, name: items[0].name+'等', amount: total, items });
+    } else {
+      costs[key] = items.reduce((s,i)=>s+i.amount,0);
+    }
+    renderCosts();
+    closeCostModal();
+    showToast('success', `已匯入 ${items.length} 筆，合計 NT$${items.reduce((s,i)=>s+i.amount,0).toLocaleString()}`);
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function downloadCSVTemplate(){
+  const csv = '﻿項目名稱,金額\n電費,7200\n水費,1800\n瓦斯,2300\n網路,1500\n';
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '成本範本.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast('success','範本已下載');
+}
+
+// 真實 CSV 匯出
+function exportReport(){
+  if (typeof DISHES === 'undefined') { showToast('error','資料未載入'); return; }
+  const today = new Date().toISOString().slice(0,10);
+  const BOM = '﻿';  // Excel 中文相容
+  const rows = [
+    ['餐廳利潤小幫手 - 毛利報表'],
+    [`匯出日期：${today}`],
+    [`方案：${PLAN_NAME[currentPlan]||'標準版'}`],
+    [''],
+    ['== 菜單毛利明細 =='],
+    ['菜色名稱','售價','總成本','毛利率','狀態','AI 建議摘要'],
+  ];
+  Object.values(DISHES).forEach(d => {
+    rows.push([d.title, d.price, d.cost, d.margin, d.type==='warn'?'⚠ 警示':d.type==='ok'?'✓ 健康':'💙 偏低', d.advice.replace(/"/g,'""').slice(0,80)]);
+  });
+  if (currentPlan === 'growth' || currentPlan === 'enterprise') {
+    rows.push(['']);
+    rows.push(['== 全成本毛利率分析 ==']);
+    rows.push(['項目','金額（NT$）']);
+    rows.push(['月營收', costs.revenue]);
+    rows.push(['食材成本', costs.food]);
+    rows.push(['房租分攤', costs.rent]);
+    rows.push(['水電瓦斯（合計）', costs.utility]);
+    (costs.utility_items||[]).forEach(i => rows.push(['　└ '+i.name, i.amount]));
+    rows.push(['人力成本（合計）', costs.labor]);
+    (costs.employees||[]).forEach(e => {
+      const sub = e.type==='hourly' ? e.wage*e.hours+e.insurance : e.wage+e.insurance;
+      rows.push([`　└ ${e.name}（${e.role}・${e.type==='hourly'?'時薪':'月薪'}）`, sub]);
+    });
+    (costs.custom||[]).forEach(c => rows.push(['自訂・'+c.name, c.amount]));
+    const customSum = (costs.custom||[]).reduce((s,c)=>s+(+c.amount||0),0);
+    const total = costs.food+costs.rent+costs.utility+costs.labor+customSum;
+    const profit = costs.revenue - total;
+    rows.push(['']);
+    rows.push(['總成本', total]);
+    rows.push(['💰 淨利', profit]);
+    rows.push(['全成本毛利率(%)', (profit/costs.revenue*100).toFixed(2)]);
+  }
+  const csv = BOM + rows.map(r => r.map(c =>
+    typeof c === 'string' && (c.includes(',')||c.includes('"')||c.includes('\n'))
+      ? `"${c.replace(/"/g,'""')}"` : c
+  ).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `毛利報表_${today}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('success','📊 報表已下載：' + a.download);
+}
+
+// 頁面載入時恢復成本
+window.addEventListener('DOMContentLoaded', ()=>{
+  try{ renderCosts(); }catch(e){}
+  // URL ?screen= 支援深層連結（給截圖與 Demo 用）
+  const params = new URLSearchParams(location.search);
+  const screen = params.get('screen');
+  if (screen === 'dashboard') showScreen('screen-dashboard');
+  else if (screen === 'onboard') showScreen('screen-onboard');
+});
+
+// ── 方案切換器 ────────────────────────────────────────────────
+const PLAN_RANK = { starter:1, growth:2, enterprise:3 };
+const PLAN_NAME = { starter:'基礎版 NT$899', growth:'標準版 NT$1,499', enterprise:'品牌版 訂製' };
+let currentPlan = 'growth';
+
+function switchPlan(plan){
+  currentPlan = plan;
+  // 更新切換器顯示
+  document.querySelectorAll('.ps-pill').forEach(p => {
+    p.classList.toggle('act', p.dataset.plan === plan);
+  });
+  // 找到所有有 data-requires 的元素，依方案決定是否鎖定
+  document.querySelectorAll('[data-requires]').forEach(el => {
+    const need = el.dataset.requires;
+    const locked = PLAN_RANK[plan] < PLAN_RANK[need];
+    // 清除舊鎖
+    el.classList.remove('feature-locked');
+    const oldOverlay = el.querySelector(':scope > .lock-overlay');
+    if (oldOverlay) oldOverlay.remove();
+    // 上鎖
+    if (locked) {
+      el.classList.add('feature-locked');
+      const ov = document.createElement('div');
+      ov.className = 'lock-overlay';
+      ov.innerHTML = `
+        <div class="lo-icon">🔒</div>
+        <div class="lo-text">此功能需要 ${PLAN_NAME[need]}</div>
+        <div class="lo-sub">點擊升級即可解鎖此功能</div>
+        <button class="lo-btn" onclick="event.stopPropagation();switchPlan('${need}');showToast('success','已切換至 ${PLAN_NAME[need]}，功能已解鎖');">升級體驗</button>
+      `;
+      ov.onclick = (e) => e.stopPropagation();
+      el.appendChild(ov);
+    }
+  });
+  // 更新訂閱卡資訊
+  const planBadge = document.querySelector('.st-badge');
+  if (planBadge) planBadge.textContent = '當前方案：' + PLAN_NAME[plan] + '/月';
+  // 更新側邊欄分店名稱
+  const sbSub = document.querySelector('.sb-logo .sub');
+  if (sbSub) {
+    sbSub.textContent = plan === 'starter' ? '鼎泰豐 · 信義店' :
+                        plan === 'growth' ? '鼎泰豐 · 信義店（共 2 / 3 分店）' :
+                                            '鼎泰豐集團 · 全 12 分店';
+  }
+}
+
+// ── DATA ──────────────────────────────────────────────────────
+const DISHES = {
+  crab:   { title:'🦀 蟹粉小籠包（5個）', price:'NT$360', cost:'NT$289', margin:'19.4%', type:'warn',
+            advice:'⚠️ 減少蟹肉和粉末成本，建議將蟹肉用量從 15g 降至 12g；替換高成本配菜。售價調漲 5%（NT$360→NT$379），毛利率預計提高至 25%。',
+            ingreds:[['蟹肉（15g）','NT$175','high'],['麵皮（5張）','NT$19',''],['薑末','NT$7',''],['調味料','NT$13',''],['包裝','NT$11',''],['其他','NT$64','high']] },
+  shrimp: { title:'🍤 蝦仁燒賣（5個）', price:'NT$285', cost:'NT$238', margin:'16.5%', type:'warn',
+            advice:'⚠️ 微調蝦肉用量至 5.2 個，減少每份成本約 NT$18；替換高成本配菜，綜合成本降至 NT$209；售價調整至 NT$290，毛利率可提升至 28%。',
+            ingreds:[['蝦仁（5個）','NT$147','high'],['麵皮','NT$17',''],['蔥花','NT$6',''],['調味料','NT$12',''],['其他','NT$57','high']] },
+  rice:   { title:'🍳 排骨蛋炒飯', price:'NT$405', cost:'NT$353', margin:'12.8%', type:'warn',
+            advice:'⚠️ 調整雞蛋用量由 3 個下調至 2 個，節省 4.8% 成本；刪除高成本青肝配菜節省 6.5%；售價維持 NT$405 不變，毛利率從 12.8% 提升至 17%。',
+            ingreds:[['排骨（80g）','NT$161','high'],['白米飯','NT$18',''],['雞蛋（3個）','NT$41',''],['青肝配菜','NT$83','high'],['調味料','NT$16',''],['其他','NT$33','high']] },
+  xlb:    { title:'🥟 小籠包（10個）', price:'NT$405', cost:'NT$130', margin:'67.9%', type:'ok',
+            advice:'✅ 毛利率良好，維持競爭力定價。建議優化生產效率，目標毛利率提至 75%。推薦搭配套餐銷售（小籠包+湯品），提高客單價。',
+            ingreds:[['豬肉餡（50g）','NT$55',''],['麵皮（10張）','NT$30',''],['蔥薑汁','NT$10',''],['調味料','NT$17',''],['包裝','NT$18',''],['其他','NT$0','']] },
+  soup:   { title:'🍲 元盅雞湯', price:'NT$405', cost:'NT$85', margin:'79.1%', type:'ok',
+            advice:'✅ 毛利率優秀，建議維持售價 NT$405 不變。可通過提升雞肉品質進一步提高客戶滿意度。推薦搭配小菜套餐銷售，提高平均客單價至 NT$690+。',
+            ingreds:[['土雞（半隻）','NT$46',''],['枸杞紅棗','NT$15',''],['調味料','NT$13',''],['其他','NT$11',''],['','','']] },
+  taro:   { title:'🟣 芋泥小籠包（5個）', price:'NT$195', cost:'NT$17', margin:'91.3%', type:'ok',
+            advice:'✅ 毛利率極佳（91.3%），建議維持現有定價策略。可作為品牌招牌菜重點推廣，提升社群媒體曝光，帶動整體客流量增長。',
+            ingreds:[['芋泥餡（40g）','NT$8',''],['麵皮（5張）','NT$4',''],['調味料','NT$2',''],['包裝','NT$3',''],['','','']] },
+  sour:   { title:'🥣 酸辣湯', price:'NT$175', cost:'NT$42', margin:'76.1%', type:'ok',
+            advice:'✅ 競爭力強，建議維持當前定價。提高辣椒品質可提升口感滿意度。推薦與主菜搭配套餐銷售，提高整體客單價。',
+            ingreds:[['豆腐（80g）','NT$9',''],['木耳','NT$7',''],['雞蛋','NT$8',''],['辣椒油','NT$6',''],['其他調味','NT$12',''],['','','']] },
+  wonton: { title:'🌶️ 蝦肉紅油抄手', price:'NT$315', cost:'NT$212', margin:'32.3%', type:'ok',
+            advice:'✅ 毛利率偏低但在安全線以上。建議微調售價至 NT$322（+NT$7），預計毛利率提升至 34%。推薦搭配湯品套餐銷售以提高整體毛利。',
+            ingreds:[['蝦仁（30g）','NT$83',''],['餛飩皮（10張）','NT$18',''],['紅油辣醬','NT$37','high'],['蔥薑蒜','NT$16',''],['調味料','NT$28','high'],['其他','NT$30','high']] },
+};
+let currentDish = null;
+
+// ── SCREENS ───────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── ONBOARD ───────────────────────────────────────────────────
+let obStep = 1;
+function goOb(n){
+  document.getElementById('ob'+obStep).classList.remove('show');
+  document.getElementById('ob'+n).classList.add('show');
+  for(let i=1;i<=4;i++){
+    const d=document.getElementById('d'+i);
+    d.className='ob-dot '+(i<n?'done':i===n?'act':'idle');
+    d.textContent=i<n?'✓':i;
+  }
+  obStep=n;
+}
+function selPos(el){
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ── LINE 綁定驗證 ───────────────────────────────────────────────
+// 後端 URL：Render 部署後填入，例如 https://restaurant-profitguard-bot.onrender.com
+const BACKEND_URL = 'https://restaurant-profitguard-bot.onrender.com';
+
+async function doLineBind(){
+  const btn = document.getElementById('btn-bind-wx');
+  btn.disabled = true;
+  btn.textContent = '驗證中…';
+  btn.style.opacity = '0.7';
+
+  try {
+    const resp = await fetch(BACKEND_URL + '/api/binding-status', { signal: AbortSignal.timeout(5000) });
+    const data = await resp.json();
+    if (data.bound) {
+      // 真實綁定成功
+      btn.textContent = '✓ 綁定成功';
+      btn.style.background = 'linear-gradient(135deg,#00B900,#009900)';
+      btn.style.opacity = '1';
+      const result = document.getElementById('bind-result');
+      result.querySelector('.bind-ok-sub').textContent =
+        '已綁定 LINE 帳號：' + data.name + ' ｜ 明日 07:30 開始推播';
+      result.classList.add('show');
+      showToast('success','✅ LINE 綁定成功！明日起每天 07:30 推播預警');
+      setTimeout(()=>{ goOb(4); }, 1800);
+    } else {
+      btn.disabled = false;
+      btn.textContent = '已加入，驗證綁定 →';
+      btn.style.opacity = '1';
+      showToast('warn','⚠️ 尚未偵測到綁定，請先掃碼加入並傳送「綁定」');
+    }
+  } catch(e) {
+    // API 不可用時進入展示模式（Demo fallback）
+    btn.textContent = '✓ 綁定成功';
+    btn.style.background = 'linear-gradient(135deg,#00B900,#009900)';
+    btn.style.opacity = '1';
+    document.getElementById('bind-result').classList.add('show');
+    showToast('success','✅ LINE 綁定成功！明日起每天 07:30 推播預警');
+    setTimeout(()=>{ goOb(4); }, 1800);
+  }
+}
+
+// ── DASHBOARD TABS ────────────────────────────────────────────
+function swTab(tab, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('show'));
+  document.getElementById('tab-'+tab).classList.add('show');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('act'));
+  if(el) el.classList.add('act');
+  const titles={overview:'今日總覽',menu:'菜單管理',suggestions:'AI 改善建議',history:'歷史趨勢',branches:'門市管理',settings:'系統設定',help:'常見問題'};
+  document.getElementById('dh-title').textContent=titles[tab]||tab;
+  document.querySelector('.dash-main').scrollTop=0;
+  if(tab==='history'){ ensureTrendChart(); loadMarket(); }
+}
+
+// ══════════ 新功能 JS：折線圖 / 大盤行情 / FAQ / 回饋 ══════════
+var TREND_DATA={
+  month:{labels:['11月','12月','1月','2月','3月','4月'],data:[48.1,49.6,46.4,52.0,56.0,58.4],note:'↑ 近 6 個月整體毛利率持續改善 +3.2%（較去年同期）'},
+  week:{labels:['第1週','第2週','第3週','第4週','第5週','第6週','第7週','第8週'],data:[47.2,46.8,49.1,50.3,48.9,52.6,54.0,55.8],note:'↑ 近 8 週呈上升趨勢，採納建議後第 6 週起明顯改善'},
+  day:{labels:['6/1','6/2','6/3','6/4','6/5','6/6','6/7','6/8'],data:[49.5,48.2,50.1,51.4,50.8,52.3,53.6,51.3],note:'近 8 日平均約 50.9%，今日 51.3%'}
+};
+var trendChart=null;
+function ensureTrendChart(){
+  if(trendChart||typeof Chart==='undefined')return;
+  var c=document.getElementById('trendChart'); if(!c)return;
+  var d=TREND_DATA.month;
+  trendChart=new Chart(c,{type:'line',data:{labels:d.labels,datasets:[{data:d.data,borderColor:'#ea580c',backgroundColor:'rgba(234,88,12,.12)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#ea580c',borderWidth:2.5}]},options:{responsive:true,aspectRatio:2.4,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(x){return x.parsed.y+'%'}}}},scales:{y:{ticks:{callback:function(v){return v+'%'}},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+}
+function setTrend(range,btn){
+  document.querySelectorAll('#tab-history .seg-btn').forEach(function(b){b.classList.remove('act')}); if(btn)btn.classList.add('act');
+  ensureTrendChart(); if(!trendChart)return;
+  var d=TREND_DATA[range]; trendChart.data.labels=d.labels; trendChart.data.datasets[0].data=d.data; trendChart.update();
+  var n=document.getElementById('trend-note'); if(n)n.textContent=d.note;
+}
+function loadMarket(){
+  var body=document.getElementById('mkt-body'),st=document.getElementById('mkt-status'),up=document.getElementById('mkt-updated');
+  if(st){st.className='dot-off';st.textContent='● 連線中…';}
+  fetch(BACKEND_URL+'/api/market',{signal:AbortSignal.timeout(25000)}).then(function(r){return r.json()}).then(function(j){
+    if(!j.ok)throw new Error(j.error||'fail');
+    if(st){st.className='dot-on';st.textContent='● 已連線';}
+    var h='<div class="mkt-grid">';
+    j.items.forEach(function(it){h+='<div class="mkt-item"><div class="mkt-name">'+it.name+'</div><div class="mkt-price">NT$'+it.avg+'<span style="font-size:.7rem;color:#94a3b8"> /公斤</span></div><div class="mkt-meta">'+it.market+'　'+it.date+'</div></div>';});
+    h+='</div>'; if(body)body.innerHTML=h;
+    if(up)up.textContent='✅ 串接成功・來源：'+j.source+'　最後更新：'+new Date(j.updated).toLocaleString('zh-TW');
+  }).catch(function(e){
+    if(st){st.className='dot-off';st.textContent='● 連線失敗';}
+    if(body)body.innerHTML='<span style="color:#ef4444">⚠️ 暫時取不到行情（'+(e.message||e)+'）。後端可能在喚醒，請稍候按 🔄 重新整理。</span>';
+  });
+}
+function toggleFaq(q){q.parentElement.classList.toggle('open');}
+function submitFeedback(e){
+  e.preventDefault();
+  var n=(document.getElementById('fb-name').value||'').trim(),em=(document.getElementById('fb-email').value||'').trim(),m=(document.getElementById('fb-msg').value||'').trim();
+  window.location.href='mailto:jason0980393088@gmail.com?subject='+encodeURIComponent('[ProfitGuard 回饋] '+n)+'&body='+encodeURIComponent('姓名：'+n+'\nEmail：'+em+'\n\n'+m);
+  if(window.showToast)showToast('success','已開啟郵件，感謝你的回饋！');
+  return false;
+}
+
+// ── FILTER ────────────────────────────────────────────────────
+function filterRows(type,btn){
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('act'));
+  btn.classList.add('act');
+  document.querySelectorAll('#menu-rows .data-row').forEach(r=>{
+    if(type==='all') r.style.display='';
+    else if(type==='warn') r.style.display=r.dataset.t==='warn'?'':'none';
+    else r.style.display=r.dataset.t!=='warn'?'':'none';
+  });
+}
+
+// ── SCAN ANIMATION ────────────────────────────────────────────
+function runScan(){
+  const btn=document.getElementById('scan-btn');
+  const bar=document.getElementById('scan-bar');
+  const fill=document.getElementById('scan-fill');
+  const pct=document.getElementById('scan-pct');
+  btn.disabled=true; btn.textContent='掃描中…';
+  bar.classList.add('show');
+  let p=0;
+  const iv=setInterval(()=>{
+    p+=Math.random()*18+4;
+    if(p>=100){p=100;clearInterval(iv);
+      setTimeout(()=>{
+        bar.classList.remove('show');
+        btn.disabled=false; btn.textContent='⚡ 立即掃描';
+        fill.style.width='0%'; pct.textContent='0%';
+        showToast('success','✅ 掃描完成！發現 3 道菜需要關注');
+      },600);
+    }
+    fill.style.width=p+'%'; pct.textContent=Math.floor(p)+'%';
+  },220);
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+function openModal(key){
+  const d=DISHES[key]; if(!d) return;
+  currentDish=key;
+  document.getElementById('m-title').textContent=d.title;
+  document.getElementById('m-price').textContent=d.price;
+  document.getElementById('m-cost').textContent=d.cost;
+  const me=document.getElementById('m-margin');
+  me.textContent=d.margin;
+  me.style.color=d.type==='warn'?'#dc2626':'#10b981';
+  const ae=document.getElementById('m-advice');
+  ae.textContent=d.advice;
+  ae.className='mb-advice '+(d.type==='warn'?'warn':'ok');
+  const il=document.getElementById('m-ingred-list');
+  il.innerHTML=d.ingreds.filter(i=>i[0]).map(i=>`<div class="ingred-row"><span class="ingred-name">${i[0]}</span><span class="ingred-cost${i[2]?' high':''}">${i[1]}</span></div>`).join('');
+  document.getElementById('m-total').innerHTML=`<span>食材總成本</span><span style="color:${d.type==='warn'?'#dc2626':'#1e293b'}">${d.cost}</span>`;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); currentDish=null; }
+function adoptFromModal(){
+  if(currentDish){
+    const d=DISHES[currentDish];
+    showToast('success','✅ 已採納「'+d.title.replace(/^[^\s]+ /,'')+'」的 AI 建議');
+  }
+  closeModal();
+}
+
+// ── AI SUGGESTION ACTIONS ─────────────────────────────────────
+function adoptSg(cardId, name){
+  const card=document.getElementById(cardId);
+  card.innerHTML=`<div class="sg-adopted"><span class="ck">✅</span><span><strong>${name}</strong> 的建議已採納，廚房主管已收到通知</span></div>`;
+  const cnt=document.getElementById('sg-cnt');
+  const c=parseInt(cnt.textContent)-1;
+  cnt.textContent=c;
+  if(c===0) cnt.style.display='none';
+  const wc=document.getElementById('warn-cnt');
+  if(wc) wc.textContent=Math.max(0,parseInt(wc.textContent)-1);
+  showToast('success','✅ 已採納「'+name+'」建議，記錄已更新');
+}
+function ignoreSg(cardId){
+  const card=document.getElementById(cardId);
+  card.style.opacity='0.4';
+  card.style.pointerEvents='none';
+  showToast('warn','已忽略此建議，下次掃描不再重複提示');
+}
+
+// ── EXPORT 已於上方實作真實 CSV 匯出 ──
+
+// ── TOAST ─────────────────────────────────────────────────────
+let toastTimer;
+function showToast(type, msg){
+  const t=document.getElementById('toast');
+  t.className='toast '+type+' show';
+  const icons={success:'✓',warn:'⚠️',info:'ℹ️'};
+  document.getElementById('toast-icon').textContent=icons[type]||'ℹ️';
+  document.getElementById('toast-msg').textContent=msg;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ t.classList.remove('show'); },3200);
+}
+
+// ── 落地頁錨點導航 ────────────────────────────────────────────
+function scrollToSection(id){
+  const el=document.getElementById(id);
+  if(!el){ showToast('info','正在捲動到'+id+'區域'); return; }
+  const h=el.getBoundingClientRect().height;
+  if(h < window.innerHeight*0.85){
+    el.scrollIntoView({behavior:'smooth',block:'center'});   // 主體置中
+  } else {
+    const y=window.scrollY+el.getBoundingClientRect().top-88;  // 高區塊：頂部對齊並留出導覽列
+    window.scrollTo({top:y,behavior:'smooth'});
+  }
+}
+</script>
+<!-- ══════════ i18n 多語系引擎 + 設定持久化（繁/簡/英）══════════ -->
+<script>
+(function(){
+  // 繁 → 簡 對照（複用 tc2sc.js，依序套用；長詞在前）
+  var TC2SC = [
+    ['人工智慧','人工智能'],['電子資訊','电子信息'],['資訊黑洞','信息黑洞'],['資訊','资讯'],['驅動','驱动'],['賽道','赛道'],['餐廳老闆','餐厅老板'],['餐廳','餐厅'],['老闆','老板'],['菜單','菜单'],['客單價','客单价'],['入門版','入门版'],['成長版','成长版'],['企業版','企业版'],['端對端','端到端'],['兩岸','两岸'],['夥伴','伙伴'],['用戶回饋','用户反馈'],['用戶','用户'],['回饋','反馈'],['龐大','庞大'],['殺手','杀手'],['可觸達','可触达'],['觸達','触达'],['廚藝','厨艺'],['看不見','看不见'],['波動','波动'],['每週','每周'],['決策','决策'],['名稱','名称'],['紀錄','记录'],['狀態','状态'],['視角','视角'],['冷凍','冷冻'],['鮮蝦','鲜虾'],['蝦仁','虾仁'],['份量','分量'],['米飯','米饭'],['維持','维持'],['預估','预估'],['考慮','考虑'],['黃金','黄金'],['掃描','扫描'],['無需','无需'],['三個','三个'],['兩個','两个'],['一個','一个'],['多個','多个'],['每個','每个'],['哪個','哪个'],['這個','这个'],['那個','那个'],['各個','各个'],['整個','整个'],['匯聚','汇聚'],['維度','维度'],['雙市場','双市场'],['關係','关系'],['從業','从业'],['業務','业务'],['現況','现况'],['現狀','现状'],['畫面','画面'],['狀況','状况'],['全覽','全览'],['三年內','三年内'],['年內','年内'],['以內','以内'],['範圍內','范围内'],['卻有','却有'],['卻不','却不'],['卻是','却是'],['卻','却'],['為了','为了'],['為何','为何'],['為零','为零'],['因為','因为'],['作為','作为'],['成為','成为'],['認為','认为'],['可為','可为'],['以為','以为'],['化為','化为'],['視為','视为'],['為主','为主'],['為什麼','为什么'],['為止','为止'],['行為','行为'],['更為','更为'],['為','为'],['內','内'],['見','见'],['從','从'],['約','约'],['達','达'],['雙','双'],['兩','两'],['覽','览'],['態','态'],['鮮','鲜'],['蝦','虾'],['凍','冻'],['廚','厨'],['殺','杀'],['驅','驱'],['賽','赛'],['廳','厅'],['闆','板'],['饋','馈'],['龐','庞'],['觸','触'],['藝','艺'],['單','单'],['維','维'],['週','周'],['稱','称'],['飯','饭'],['慮','虑'],['掃','扫'],['個','个'],['匯','汇'],['係','系'],['況','况'],['餐飲業','餐饮业'],['餐飲科技','餐饮科技'],['餐飲顧問','餐饮顾问'],['餐飲市場','餐饮市场'],['餐飲品牌','餐饮品牌'],['餐飲營運','餐饮运营'],['餐飲數位化','餐饮数字化'],['餐飲管理','餐饮管理'],['餐飲業務','餐饮业务'],['餐飲','餐饮'],['菜色','菜品'],['導入成本','导入成本'],['導入','导入'],['顯示','显示'],['設定','设定'],['設計','设计'],['執行','执行'],['連線','连线'],['資料表','数据表'],['資料庫','数据库'],['資料','数据'],['系統架構','系统架构'],['系統','系统'],['競賽簡報','竞赛简报'],['競賽','竞赛'],['簡報','简报'],['台灣市場','台湾市场'],['台灣','台湾'],['臺灣','台湾'],['大陸市場','大陆市场'],['大陸','大陆'],['訂閱','订阅'],['費用','费用'],['階段','阶段'],['驗證','验证'],['團隊','团队'],['創新','创新'],['創業','创业'],['選拔計畫','选拔计划'],['選拔','选拔'],['計畫','计划'],['開發','开发'],['建議','建议'],['診斷','诊断'],['警報','警报'],['儀表板','仪表板'],['截圖','截图'],['電子郵件','电子邮件'],['郵件','邮件'],['客戶','客户'],['報告書','报告书'],['報告','报告'],['優先','优先'],['顧問','顾问'],['擴展','扩展'],['發展','发展'],['時間軸','时间轴'],['時間','时间'],['財務預測','财务预测'],['財務','财务'],['預測','预测'],['損益平衡','损益平衡'],['損益','损益'],['估計','估计'],['技術棧','技术栈'],['技術','技术'],['免費','免费'],['趨勢','趋势'],['創造','创造'],['進入','进入'],['視窗','视窗'],['雲端','云端'],['獲利','获利'],['壓縮','压缩'],['競爭','竞争'],['精細化','精细化'],['關鍵','关键'],['創辦人','创办人'],['負責人','负责人'],['架構','架构'],['獨立','独立'],['具備','具备'],['補充','补充'],['報價','报价'],['明細','明细'],['聯動','联动'],['結語','结语'],['申請','申请'],['投資','投资'],['試用','试用'],['標示','标示'],['標記','标记'],['標籤','标签'],['圖示','图标'],['頁面','页面'],['頂部','顶部'],['輸入','输入'],['輸出','输出'],['輕量','轻量'],['長期','长期'],['門店','门店'],['問題','问题'],['開始','开始'],['開業','开业'],['開源','开源'],['來自','来自'],['後端','后端'],['傳統','传统'],['億元','亿元'],['人民幣','人民币'],['線上','线上'],['線下','线下'],['點擊','点击'],['業者','业者'],['實測','实测'],['產值','产值'],['網路','网络'],['連鎖','连锁'],['數位化','数字化'],['數位','数字'],['數據','数据'],['數量','数量'],['數','数'],['自動化','自动化'],['自動','自动'],['運行','运行'],['運算','运算'],['運營','运营'],['調整','调整'],['調漲','调涨'],['調降','调降'],['優化','优化'],['優勢','优势'],['精準','精准'],['精確','精确'],['守護','守护'],['填寫','填写'],['呼叫','调用'],['觸發','触发'],['排程','调度'],['帳號','账号'],['帳戶','账户'],['連接','连接'],['連結','连结'],['介面','界面'],['按鈕','按钮'],['硬體','硬件'],['軟體','软件'],['伺服器','服务器'],['應用程式','应用程序'],['程式碼','代码'],['程式','程序'],['腳本','脚本'],['模組','模块'],['說明','说明'],['報名','报名'],['行銷','营销'],['行業','行业'],['產業','产业'],['企業','企业'],['商業','商业'],['商機','商机'],['支援','支持'],['整體','整体'],['即時','实时'],['報表','报表'],['螢幕','屏幕'],['影片','视频'],['錄製','录制'],['測試版','测试版'],['升級','升级'],['上線','上线'],['儲存','保存'],['選項','选项'],['連帶','连带'],['持續','持续'],['降級','降级'],['精細','精细'],['迫切','迫切'],['第一線','第一线'],['合作夥伴','合作伙伴'],['飲','饮'],['導','导'],['顯','显'],['設','设'],['執','执'],['連','连'],['統','统'],['競','竞'],['簡','简'],['訂','订'],['費','费'],['階','阶'],['驗','验'],['選','选'],['計','计'],['議','议'],['診','诊'],['報','报'],['優','优'],['顧','顾'],['擴','扩'],['發','发'],['時','时'],['財','财'],['預','预'],['損','损'],['棧','栈'],['趨','趋'],['獲','获'],['壓','压'],['鍵','键'],['創','创'],['辦','办'],['負','负'],['獨','独'],['備','备'],['補','补'],['聯','联'],['結','结'],['標','标'],['頁','页'],['頂','顶'],['層','层'],['輸','输'],['輕','轻'],['長','长'],['問','问'],['間','间'],['傳','传'],['億','亿'],['幣','币'],['線','线'],['點','点'],['業','业'],['實','实'],['測','测'],['產','产'],['網','网'],['過','过'],['進','进'],['還','还'],['這','这'],['邊','边'],['隱','隐'],['節','节'],['調','调'],['複','复'],['強','强'],['們','们'],['帳','账'],['體','体'],['軟','软'],['腳','脚'],['組','组'],['說','说'],['銷','销'],['錢','钱'],['虧','亏'],['術','术'],['應','应'],['後','后'],['萬','万'],['圖','图'],['開','开'],['關','关'],['來','来'],['電','电'],
+    ['價','价'],['關','关'],['們','们'],['試','试'],['興','兴'],['項','项'],['務','务'],['灣','湾'],['動','动'],['訴','诉'],['並','并'],['農','农'],['鐘','钟'],['隨','随'],['無','无'],['號','号'],['總','总'],['狀','状'],['異','异'],['紅','红'],['歡','欢'],['攤','摊'],['歷','历'],['勢','势'],['製','制'],['對','对'],['簽','签'],['協','协'],['絡','络'],['潤','润'],['幫','帮'],['類','类'],['緻','致'],['範','范'],['資','资'],['擊','击'],['載','载'],['繼','继'],['續','续'],['碼','码'],['豐','丰'],['義','义'],['艦','舰'],['證','证'],['暫','暂'],['監','监'],['團','团'],['將','将'],['換','换'],['營','营'],['運','运'],['員','员'],['僅','仅'],['際','际'],['裡','里'],['賺','赚'],['現','现'],['與','与'],['討','讨'],['論','论'],['籠','笼'],['減','减'],['漲','涨'],['燒','烧'],['賣','卖'],['採','采'],['購','购'],['刪','删'],['薦','荐'],['雞','鸡'],['湯','汤'],['質','质'],['極','极'],['廣','广'],['爭','争'],['會','会'],['變','变'],['編','编'],['輯','辑'],['針','针'],['納','纳'],['記','记'],['錄','录'],['擇','择'],['經','经'],['濟','济'],['佔','占'],['綜','综'],['佈','布'],['處','处'],['決','决'],['戶','户'],['權','权'],['請','请'],['剛','刚'],['陳','陈'],['華','华'],['讀','读'],['張','张'],['語','语'],['敗','败'],['儲','储'],['區','区'],['亞','亚'],['鑰','钥'],['閱','阅'],['當','当'],['額','额'],['細','细'],['詳','详'],['該','该'],['檔','档'],['欄','栏'],['準','准'],['題','题'],['據','据'],['門','门'],['礎','础'],['綁','绑'],['麼','么'],['於','于'],['彙','汇'],['讓','让'],['誕','诞'],['權','权'],['訪','访'],['監','监']
+  ];
+  // 繁 → 英（主要介面字串；以子字串取代，長詞在前；未涵蓋者保留中文）
+  var EN = [
+    ['Restaurant-profitguard 誕生於東海大學的創業團隊。我們走訪商圈時發現：許多老闆在食材漲價的浪潮裡，直到月底結帳才知道自己白做工。我們相信，毛利監控不該是大企業的特權——用 LINE 和 AI，讓每一位小店老闆都能在第一時間掌握自己的數字。','Restaurant-profitguard was born from a startup team at Tunghai University. Visiting local food districts, we found many owners only realize they worked for nothing when closing the books at month-end. We believe margin monitoring shouldn’t be a privilege of big chains — with LINE and AI, every small restaurant owner can know their numbers the moment things change.'],
+    ['「讓每一道菜，都值得被端上桌。」','“Every dish deserves its place on the table.”'],
+    ['創辦人：羅謙（Jason）・東海大學　|　聯絡：','Founder: Jason Lo · Tunghai University | Contact: '],
+    ['你已登入，但還沒綁定 LINE Bot —— 請先用手機加入官方帳號並傳「綁定」，再重新整理本頁。','you are logged in but not yet bound to the LINE Bot — add the official account on your phone, send "Bind", then refresh this page.'],
+    ['——到「菜單管理」按「+ 新增菜色」建立你自己的菜單，毛利警報就會用你的真實資料。',' — go to Menu and tap "+ Add Dish" to build your own menu; margin alerts will then use your real data.'],
+    ['每日 07:30 LINE 推播你的真實數字。','Your real numbers pushed via LINE daily at 07:30.'],
+    ['還沒有菜色——按右上「+ 新增菜色」開始','No dishes yet — tap "+ Add Dish" to start'],
+    ['每日 07:30 自動生成','Auto-generated daily at 07:30'],
+    ['道菜・警戒線',' dishes · alert line '],
+    ['目前顯示','Currently showing the '],
+    ['示範菜單','demo menu'],
+    ['我的菜單','My Menu'],
+    ['已登入：','Logged in: '],
+    ['LINE 登入','LINE Login'],
+    ['進入後台','My Dashboard '],
+    ['登出','Log out'],
+    ['🤖 AI 補充建議：可推出「蟹粉系列套餐」搭配高毛利的芋泥小籠包（91%），以組合定價拉高整體客單毛利；並透過 LINE 提醒每週比較 3 家蟹肉供應商報價，鎖定低點進貨。','🤖 AI bonus tip: launch a "Crab Series Combo" paired with high-margin Taro Xiaolongbao (91%) to lift overall ticket margin via bundle pricing; use LINE reminders to compare 3 crab suppliers weekly and buy at the low point.'],
+    ['🤖 AI 補充建議：蝦仁屬高波動食材，建議改用「冷凍白蝦」當基底、現流蝦僅作點綴，可降成本約 12%；旺季前可預先簽定週結報價鎖價。','🤖 AI bonus tip: shrimp is highly volatile — use frozen white shrimp as the base with fresh shrimp as garnish to cut costs ~12%; lock weekly pricing contracts before peak season.'],
+    ['🤖 AI 補充建議：排骨蛋炒飯為帶客主力，不宜大漲價；可改推「加 NT$30 升級套餐（附湯品）」提高客單，套餐毛利可拉高至 22%，比單漲售價更不影響翻桌。','🤖 AI bonus tip: this dish drives traffic — avoid big price hikes; offer a "+NT$30 combo upgrade (with soup)" to raise ticket size. Combo margin can reach 22% with less impact on turnover than a straight price increase.'],
+    ['✅ 採納 AI 建議後，本期需改善菜色減少 1 道、平均毛利率提升 4.9 個百分點，預估月省成本近翻倍。','✅ After adopting AI advice: dishes needing fixes down by 1, average margin up 4.9 points, and estimated monthly savings nearly doubled.'],
+    ['系統每日清晨自動串接農業部大盤行情更新批發價；你也可在「歷史趨勢 → 大盤食材行情」手動重新整理。建議每月至少核對一次自家供應商實際進貨價。','The system auto-syncs wholesale prices from the Ministry of Agriculture market data every morning; you can also refresh manually under History → Market Prices. We recommend verifying your own supplier prices monthly.'],
+    ['食材毛利率 =（售價 − 食材成本）÷ 售價。標準版另計「全成本毛利率」，會再扣除房租、水電、人力分攤，反映真實獲利。','Ingredient margin = (price − ingredient cost) ÷ price. The Growth plan also computes full-cost margin, deducting rent, utilities and labor allocation to reflect true profit.'],
+    ['請確認已完成綁定（傳「綁定」給官方帳號）且未封鎖帳號。系統每日 07:30 推播，可於系統設定調整時間。','Make sure you have completed binding (send "Bind" to the official account) and have not blocked it. Pushes go out daily at 07:30 — adjust the time in Settings.'],
+    ['標準版最多管理 3 家門市，品牌版無上限並支援集中管理與權限分級，可在「門市管理」新增。','Growth manages up to 3 stores; Enterprise is unlimited with centralized management and role-based access. Add stores under Branches.'],
+    ['資料儲存於亞太（台灣）區域，傳輸全程 HTTPS 加密；可隨時於系統設定一鍵匯出全部資料。','Data is stored in the Asia-Pacific (Taiwan) region with HTTPS encryption in transit; you can export all your data anytime from Settings.'],
+    ['正在從農業部開放資料載入即時批發行情…','Loading live wholesale prices from Ministry of Agriculture open data…'],
+    ['↑ 近 6 個月整體毛利率持續改善 +3.2%（較去年同期）','↑ Overall margin improving for 6 months, +3.2% YoY'],
+    ['↑ 近 8 週呈上升趨勢，採納建議後第 6 週起明顯改善','↑ Upward trend over 8 weeks; clear improvement from week 6 after adopting advice'],
+    ['近 8 日平均約 50.9%，今日 51.3%','8-day average ~50.9%; today 51.3%'],
+    ['📊 當期 vs 上期 建議成效比對','📊 Current vs Previous Period Comparison'],
+    ['上期（5/22～6/4）','Previous (5/22–6/4)'],
+    ['當期（6/5～6/8）','Current (6/5–6/8)'],
+    ['需改善菜色','Dishes to fix'],
+    ['平均毛利率','Average margin'],
+    ['已採納建議','Advice adopted'],
+    ['預估月省成本','Est. monthly savings'],
+    ['毛利率趨勢','Margin Trend'],
+    ['🥬 今日大盤食材行情','🥬 Today’s Wholesale Market Prices'],
+    ['● 連線中…','● Connecting…'],
+    ['● 已連線','● Connected'],
+    ['● 連線失敗','● Connection failed'],
+    ['🔄 重新整理','🔄 Refresh'],
+    ['✅ 串接成功・來源：','✅ Connected · Source: '],
+    ['最後更新：','Last updated: '],
+    ['常見問題與聯絡我們','FAQ & Contact'],
+    ['❓ 常見問題（FAQ）','❓ Frequently Asked Questions'],
+    ['食材成本多久更新一次？','How often are ingredient costs updated?'],
+    ['毛利率是怎麼算的？','How is the margin calculated?'],
+    ['LINE 推播沒收到怎麼辦？','Not receiving LINE pushes?'],
+    ['可以管理多家門市嗎？','Can I manage multiple stores?'],
+    ['我的資料安全嗎？','Is my data safe?'],
+    ['✉️ 聯絡 / 意見回饋','✉️ Contact / Feedback'],
+    ['送出回饋','Send Feedback'],
+    ['或直接來信：','Or email us directly: '],
+    ['常見問題','FAQ'],
+    ['/公斤',' /kg'],
+    ['檳榔心芋','Betel-heart Taro'],['小番茄','Cherry Tomato'],['濕香菇','Fresh Shiitake'],['乾香菇','Dried Shiitake'],['小黃瓜','Cucumber'],['大白菜','Napa Cabbage'],['小白菜','Bok Choy'],['青江菜','Bok Choy'],['高麗菜','Cabbage'],['土白菜','Native'],['白菜','Cabbage'],['洋蔥','Onion'],['青蔥','Green Onion'],['香菇','Shiitake'],['大蒜','Garlic'],['軟梗','Soft-stem'],['硬梗','Hard-stem'],['番茄','Tomato'],['蕃茄','Tomato'],['絲瓜','Loofah'],['苦瓜','Bitter Melon'],['青椒','Green Pepper'],['甜椒','Bell Pepper'],['茄子','Eggplant'],['菠菜','Spinach'],['空心菜','Water Spinach'],['地瓜葉','Sweet Potato Leaves'],['馬鈴薯','Potato'],['紅蘿蔔','Carrot'],['白蘿蔔','Radish'],['花椰菜','Cauliflower'],['本產','Local'],['進口','Imported'],['其他','Other'],['蔥','Green Onion'],['薑','Ginger'],['蒜','Garlic'],['芋','Taro'],['茄','Eggplant'],['瓜','Gourd'],
+    ['台北第一果菜批發市場','Taipei 1st Wholesale Produce Market'],['台北第二果菜批發市場','Taipei 2nd Wholesale Produce Market'],['彰化溪湖果菜批發市場','Xihu Wholesale Produce Market (Changhua)'],['果菜批發市場',' Wholesale Produce Market'],
+    ['台北市場','Taipei Market'],['台北二','Taipei 2nd Mkt'],['台北一','Taipei 1st Mkt'],['板橋區','Banqiao'],['三重區','Sanchong'],['溪湖鎮','Xihu'],['台中市','Taichung'],['高雄市','Kaohsiung'],['鳳山區','Fengshan'],['台東市','Taitung'],['宜蘭市','Yilan'],['花蓮市','Hualien'],['嘉義市','Chiayi'],['桃園區','Taoyuan'],['新竹市','Hsinchu'],
+    ['台中','Taichung'],['高雄','Kaohsiung'],['三重','Sanchong'],['板橋','Banqiao'],['桃園','Taoyuan'],['新竹','Hsinchu'],['嘉義','Chiayi'],['台南','Tainan'],['鳳山','Fengshan'],['宜蘭','Yilan'],['花蓮','Hualien'],['台東','Taitung'],
+    ['4 道','4 dishes'],['3 道','3 dishes'],['2 項','2 items'],['5 項','5 items'],
+    ['月','M'],['週','W'],['日','D'],
+    ['串接你的菜單，自動計算毛利率。低於警戒線立刻推播 LINE 通知，並附上 AI 改善建議。串接農業部每日食材行情，成本自動更新。不用懂技術，5 分鐘上線，隨時取消。','Connect your menu and auto-calculate margins. Get instant LINE alerts when below the warning line, with AI improvement tips. Daily wholesale ingredient prices keep costs updated automatically. No tech skills needed — live in 5 minutes, cancel anytime.'],
+    ['新興創業項目 · 預計服務台灣中小型餐廳','Emerging startup · serving small & mid-sized restaurants in Taiwan'],
+    ['每天早上 7:30 自動執行，掃描全部菜色毛利率，無需人工操作，結果直達你的 LINE。','Runs automatically at 7:30 every morning, scanning every dish’s margin with no manual work — results delivered straight to your LINE.'],
+    ['不只告訴你「哪道菜有問題」，還告訴你「怎麼調整食材用量、調多少售價」，有依據可執行。','Not just which dish has a problem, but exactly how to adjust ingredient amounts and pricing — actionable and data-backed.'],
+    ['一個帳號管理多家門市，總部即時看到各店毛利健康狀況，異常門市立即標紅。','Manage multiple stores from one account; HQ sees each store’s margin health in real time, with troubled stores flagged in red.'],
+    ['所有方案均含 14 天免費試用，無需綁定信用卡','All plans include a 14-day free trial — no credit card required'],
+    ['每天早上 7:30','Every morning at 7:30'],
+    ['AI 主動告訴你','AI proactively tells you'],
+    ['哪道菜在虧錢','Which dishes are losing money'],
+    ['免費開始 — 不需信用卡','Start Free — No Credit Card'],
+    ['查看 Demo →','View Demo →'],
+    ['每日自動掃描','Daily Auto-Scan'],
+    ['AI 精準建議','Precise AI Advice'],
+    ['多門市管理','Multi-Store Management'],
+    ['平均毛利率提升','Average margin increase'],
+    ['上線所需時間','Time to go live'],
+    ['14天','14 days'],
+    ['免費試用，隨時取消','Free trial, cancel anytime'],
+    ['免費試用 14 天','Free 14-Day Trial'],
+    ['綁定','Bind'],
+    ['簡單定價，按品牌付費','Simple Pricing, Pay Per Brand'],
+    ['基礎版 Starter','Starter'],
+    ['/月','/mo'],
+    ['1 分店 · 100 道菜','1 store · 100 dishes'],
+    ['食材成本掃描','Ingredient cost scan'],
+    ['食材毛利每日自動掃描','Daily automatic ingredient-margin scan'],
+    ['LINE 即時預警推播','Real-time LINE alert push'],
+    ['AI 改善建議（10次/月）','AI improvement advice (10/mo)'],
+    ['CSV 批量匯入食材清單','Bulk CSV ingredient import'],
+    ['毛利警戒線自訂','Custom margin warning line'],
+    ['開始試用','Start Trial'],
+    ['最受歡迎','Most Popular'],
+    ['標準版 Growth','Growth'],
+    ['3 分店 · 500 道菜','3 stores · 500 dishes'],
+    ['✨ 真實全成本毛利率','✨ True full-cost margin'],
+    ['所有基礎版功能','All Starter features'],
+    ['固定成本分攤計算（房租／水電／人力）','Fixed-cost allocation (rent / utilities / labor)'],
+    ['真實全成本毛利率分析','True Full-Cost Margin Analysis'],
+    ['歷史報表 & 毛利趨勢圖','Historical reports & margin trend charts'],
+    ['跨品牌彙整報告','Cross-brand summary reports'],
+    ['AI 建議無限次・PDF 匯出','Unlimited AI advice · PDF export'],
+    ['品牌版 Enterprise','Enterprise'],
+    ['訂製','Custom'],
+    ['無限分店 · 無限菜色','Unlimited stores · unlimited dishes'],
+    ['所有標準版功能','All Growth features'],
+    ['多分店集中管理','Centralized multi-store management'],
+    ['POS 系統對接','POS system integration'],
+    ['REST API 串接','REST API integration'],
+    ['1 對 1 顧問服務','1-on-1 consulting'],
+    ['簽保密協議 (NDA)','NDA signing'],
+    ['關於我們','About Us'],
+    ['聯絡我們','Contact Us'],
+    ['← 返回','← Back'],
+    ['歡迎使用餐廳利潤小幫手','Welcome to Restaurant ProfitGuard'],
+    ['先建立你的品牌，只需 30 秒','Set up your brand first — just 30 seconds'],
+    ['品牌 / 公司名稱','Brand / Company Name'],
+    ['餐廳類型','Restaurant Type'],
+    ['中式料理','Chinese'],
+    ['日式料理','Japanese'],
+    ['台式小吃','Taiwanese Snacks'],
+    ['西餐','Western'],
+    ['飲料店','Beverage Shop'],
+    ['品牌定位','Brand Positioning'],
+    ['高端精緻','High-end / Fine'],
+    ['中高價位','Mid-to-high'],
+    ['平價實惠','Budget-friendly'],
+    ['低於此數值自動觸發 AI 警示','Below this value automatically triggers an AI alert'],
+    ['毛利警戒線','Margin Warning Line'],
+    ['下一步 →','Next →'],
+    ['匯入你的菜單','Import your menu'],
+    ['支援 Excel / CSV，或使用範例資料','Supports Excel / CSV, or use sample data'],
+    ['點擊或拖曳上傳 Excel / CSV','Click or drag to upload Excel / CSV'],
+    ['支援 .xlsx .csv 格式，最大 10MB','Supports .xlsx .csv, up to 10MB'],
+    ['— 或 —','— or —'],
+    ['📥 下載菜單範本（Excel）','📥 Download menu template (Excel)'],
+    ['使用範例資料繼續 →','Continue with sample data →'],
+    ['綁定 LINE，接收推播通知','Link LINE to receive push notifications'],
+    ['有警示時主動推播，不需每天登入查看','Get pushed alerts proactively — no need to log in daily'],
+    ['📷 掃碼加入 LINE 官方帳號','📷 Scan to add the LINE official account'],
+    ['掃碼加入後，傳送「','After scanning, send "'],
+    ['」即完成','" to finish'],
+    ['📱 綁定後每天 07:30 收到','📱 After linking, receive daily at 07:30'],
+    ['餐廳利潤小幫手 LINE 官方帳號','Restaurant ProfitGuard LINE Official Account'],
+    ['⚠️ 菜單毛利率預警通知','⚠️ Menu margin alert notification'],
+    ['掃描門市','Scanned store'],
+    ['鼎泰豐 · 信義旗艦店','Din Tai Fung · Xinyi Flagship'],
+    ['預警品項','Alerted items'],
+    ['3 道低於警戒線 25%','3 dishes below the 25% warning line'],
+    ['最低毛利','Lowest margin'],
+    ['排骨蛋炒飯 12.8%','Pork Chop Egg Fried Rice 12.8%'],
+    ['已生成，可立即查看','Generated — view now'],
+    ['查看 AI 改善建議 →','View AI improvement advice →'],
+    ['LINE 綁定成功！','LINE linked successfully!'],
+    ['已綁定 LINE 帳號：王小明 ｜ 明日 07:30 開始推播','Linked LINE account: Wang Xiaoming | Push starts tomorrow 07:30'],
+    ['已加入，驗證綁定 →','Added — verify link →'],
+    ['暫時跳過','Skip for now'],
+    ['設定完成！','Setup complete!'],
+    ['餐廳利潤小幫手已開始監控你的菜單','Restaurant ProfitGuard is now monitoring your menu'],
+    ['每天早上 7:30 自動掃描並推播結果','Auto-scans and pushes results at 7:30 every morning'],
+    ['品牌：鼎泰豐餐飲集團（高端精緻）','Brand: Din Tai Fung Group (high-end / fine)'],
+    ['已匯入 8 道菜色','8 dishes imported'],
+    ['LINE 通知已綁定','LINE notifications linked'],
+    ['毛利警戒線：25%','Margin warning line: 25%'],
+    ['首次掃描將於明日 07:30 執行','First scan runs tomorrow at 07:30'],
+    ['進入 Dashboard →','Enter Dashboard →'],
+    ['菜單管理','Menu'],
+    ['歷史趨勢','History'],
+    ['門市管理','Branches'],
+    ['系統設定','Settings'],
+    ['今日總覽','Today’s Overview'],
+    ['王小明','Wang Xiaoming'],
+    ['老闆','Owner'],
+    ['👁 體驗方案','👁 Try plans'],
+    ['基礎版','Starter'],
+    ['標準版','Growth'],
+    ['品牌版','Enterprise'],
+    ['切換方案即時體驗不同介面 →','Switch plans to instantly preview different interfaces →'],
+    ['最後掃描：今日 07:30 ·','Last scan: today 07:30 ·'],
+    ['● 營運中','● Operating'],
+    ['📄 匯出報表','📄 Export Report'],
+    ['⚡ 立即掃描','⚡ Scan Now'],
+    ['🔍 正在掃描菜單毛利率...','🔍 Scanning menu margins...'],
+    ['⚠️ 需要關注','⚠️ Needs Attention'],
+    ['低於警戒線 25%','Below 25% warning line'],
+    ['✅ 食材毛利率','✅ Ingredient Margin'],
+    ['↑ 較上月 +1.2%','↑ +1.2% vs last month'],
+    ['🏢 全成本毛利率','🏢 Full-Cost Margin'],
+    ['含房租／水電／人力分攤','Incl. rent / utilities / labor allocation'],
+    ['💰 本月淨利','💰 Net Profit This Month'],
+    ['營收 − 總成本','Revenue − Total Cost'],
+    ['🏢 真實全成本毛利率分析','🏢 True Full-Cost Margin Analysis'],
+    ['標準版獨家','Growth exclusive'],
+    ['🔗 自動','🔗 Auto'],
+    ['食材成本','Ingredient Cost'],
+    ['從菜單同步','Synced from menu'],
+    ['月營收','Monthly Revenue'],
+    ['總收入','Total revenue'],
+    ['房租分攤','Rent Allocation'],
+    ['月固定','Fixed monthly'],
+    ['水電瓦斯','Utilities'],
+    ['電/水/瓦斯/網路','Electricity/Water/Gas/Internet'],
+    ['人力成本','Labor Cost'],
+    ['員工計算器','Staff calculator'],
+    ['新增項目','Add Item'],
+    ['總成本','Total Cost'],
+    ['自動加總','Auto-summed'],
+    ['💰 淨利','💰 Net Profit'],
+    ['營收 − 總成本（獲利中）','Revenue − Total Cost (profitable)'],
+    ['全成本毛利率','Full-Cost Margin'],
+    ['✓ 健康（標準 ≥ 25%）','✓ Healthy (standard ≥ 25%)'],
+    ['📊 對照：僅看食材成本時毛利率為','📊 Compare: with ingredient cost only, the margin is'],
+    ['，但扣除房租／水電／人力後，',', but after deducting rent / utilities / labor,'],
+    ['真實全成本毛利率僅','the true full-cost margin is only'],
+    ['，每月實際淨利約',', with actual monthly net profit of about'],
+    ['— 這才是你口袋裡實際賺到的錢。','— this is the money you actually pocket.'],
+    ['發現 3 道菜毛利率低於警戒線（25%）','Found 3 dishes below the margin warning line (25%)'],
+    ['AI 已生成改善建議，建議本週內與廚房主管討論調整方案','AI has generated improvement advice; discuss adjustments with your kitchen lead this week'],
+    ['查看建議 →','View Advice →'],
+    ['菜單毛利一覽','Menu Margin Overview'],
+    ['全部 (8)','All (8)'],
+    ['⚠️ 警示 (3)','⚠️ Alerts (3)'],
+    ['✅ 健康 (5)','✅ Healthy (5)'],
+    ['菜色名稱','Dish Name'],
+    ['售價','Price'],
+    ['毛利率','Margin'],
+    ['狀態','Status'],
+    ['AI 建議摘要','AI Advice Summary'],
+    ['🦀 蟹粉小籠包（5個）','🦀 Crab Xiaolongbao (5 pcs)'],
+    ['⚠️ 警示','⚠️ Alert'],
+    ['⚠️ 減少蟹肉用量，售價調漲 5%…','⚠️ Reduce crab meat, raise price 5%…'],
+    ['🍤 蝦仁燒賣（5個）','🍤 Shrimp Shumai (5 pcs)'],
+    ['⚠️ 微調蝦肉用量，降低採購成本…','⚠️ Tweak shrimp amount, lower purchasing cost…'],
+    ['🍳 排骨蛋炒飯','🍳 Pork Chop Egg Fried Rice'],
+    ['⚠️ 刪除高成本配菜，節省 6.5%…','⚠️ Remove costly sides, save 6.5%…'],
+    ['🥟 小籠包（10個）','🥟 Xiaolongbao (10 pcs)'],
+    ['✅ 健康','✅ Healthy'],
+    ['✅ 維持定價，推薦搭配套餐…','✅ Keep pricing, recommend as combo…'],
+    ['🍲 元盅雞湯','🍲 Double-Boiled Chicken Soup'],
+    ['✅ 提升食材品質，強化套餐搭配…','✅ Improve ingredient quality, strengthen combos…'],
+    ['🟣 芋泥小籠包（5個）','🟣 Taro Xiaolongbao (5 pcs)'],
+    ['✅ 毛利極佳，可作為招牌菜推廣…','✅ Excellent margin, promote as signature…'],
+    ['🥣 酸辣湯','🥣 Hot & Sour Soup'],
+    ['✅ 競爭力強，搭配主菜套餐…','✅ Highly competitive, pair as combo…'],
+    ['🌶️ 蝦肉紅油抄手','🌶️ Shrimp Wonton in Chili Oil'],
+    ['💙 偏低','💙 Low'],
+    ['✅ 微調售價至 NT$322，毛利提升…','✅ Tweak price to NT$322, margin improves…'],
+    ['📥 下載範本','📥 Download Template'],
+    ['📤 匯入 Excel','📤 Import Excel'],
+    ['+ 新增菜色','+ Add Dish'],
+    ['🔔 食材成本每週會變動，建議每月更新一次。','🔔 Ingredient costs change weekly; updating monthly is recommended.'],
+    ['上次更新：14 天前','Last updated: 14 days ago'],
+    ['更新成本','Update Costs'],
+    ['所有菜色（8 道）','All Dishes (8)'],
+    ['操作','Actions'],
+    ['編輯食材','Edit Ingredients'],
+    ['AI 改善建議','AI Improvement Advice'],
+    ['針對低於警戒線的品項，AI 已生成具體優化方向，點擊「已採納」記錄執行狀態','For items below the warning line, AI has generated concrete optimizations; click "Adopted" to log execution status'],
+    ['毛利率 19.4% — 低於警戒線 5.6%','Margin 19.4% — 5.6% below warning line'],
+    ['忽略','Ignore'],
+    ['✓ 已採納','✓ Adopted'],
+    ['⚠️ 減少蟹肉和粉末成本，建議將蟹肉用量從 15g 降至 12g；替換高成本配菜，選擇經濟性配料。售價調漲幅度 5%（NT$360→NT$379），毛利率預計提高至 25%。','⚠️ Cut crab and starch costs: reduce crab from 15g to 12g; swap costly sides for economical ones. Raise price 5% (NT$360→NT$379); margin expected to rise to 25%.'],
+    ['📉 依據：成本佔售價 80.6%','📉 Basis: cost is 80.6% of price'],
+    ['💡 預計節省：NT$15/道','💡 Est. savings: NT$15/dish'],
+    ['📅 今日 07:30','📅 Today 07:30'],
+    ['毛利率 16.5% — 低於警戒線 8.5%','Margin 16.5% — 8.5% below warning line'],
+    ['⚠️ 微調蝦肉用量至 5.2 個，減少每份成本約 NT$18；替換高成本配菜，綜合成本降至 NT$209；售價調整至 NT$290，毛利率可提升至 28%。','⚠️ Adjust shrimp to 5.2 pcs, cutting ~NT$18 per serving; swap costly sides, total cost down to NT$209; set price to NT$290, margin can rise to 28%.'],
+    ['📉 依據：成本佔售價 83.5%','📉 Basis: cost is 83.5% of price'],
+    ['💡 預計節省：NT$29/道','💡 Est. savings: NT$29/dish'],
+    ['毛利率 12.8% — 低於警戒線 12.2%','Margin 12.8% — 12.2% below warning line'],
+    ['⚠️ 調整雞蛋用量由 3 個下調至 2 個，節省 4.8% 成本；刪除高成本青肝配菜節省 6.5%；售價維持 NT$405 不變，預計毛利率從 12.8% 提升至 17%。','⚠️ Reduce eggs from 3 to 2, saving 4.8%; remove costly liver side for 6.5%; keep price at NT$405; margin expected to rise from 12.8% to 17%.'],
+    ['📉 依據：成本佔售價 87.2%','📉 Basis: cost is 87.2% of price'],
+    ['💡 預計節省：NT$52/道','💡 Est. savings: NT$52/dish'],
+    ['毛利率歷史趨勢','Margin History Trend'],
+    ['整體平均毛利率（近 6 個月）','Overall average margin (last 6 months)'],
+    ['11月','Nov'],['12月','Dec'],['1月','Jan'],['2月','Feb'],['3月','Mar'],['4月','Apr'],
+    ['↑ 整體毛利率持續改善 +3.2%（較去年同期）','↑ Overall margin keeps improving +3.2% (YoY)'],
+    ['各菜色毛利率分佈','Margin distribution by dish'],
+    ['芋泥小籠包','Taro Xiaolongbao'],
+    ['元盅雞湯','Double-Boiled Chicken Soup'],
+    ['酸辣湯','Hot & Sour Soup'],
+    ['小籠包(10)','Xiaolongbao (10)'],
+    ['紅油抄手','Chili Oil Wonton'],
+    ['蟹粉小籠包','Crab Xiaolongbao'],
+    ['蝦仁燒賣','Shrimp Shumai'],
+    ['排骨蛋炒飯','Pork Chop Egg Fried Rice'],
+    ['最近警示記錄','Recent Alert Log'],
+    ['日期','Date'],
+    ['菜色','Dish'],
+    ['今日 07:30','Today 07:30'],
+    ['⚠️ 減少蟹肉用量，漲價 5%','⚠️ Reduce crab, raise price 5%'],
+    ['待處理','Pending'],
+    ['⚠️ 微調蝦肉用量','⚠️ Tweak shrimp amount'],
+    ['3天前','3 days ago'],
+    ['⚠️ 刪除高成本配菜','⚠️ Remove costly sides'],
+    ['處理中','In progress'],
+    ['上週','Last week'],
+    ['✅ 微調售價至 NT$322','✅ Tweak price to NT$322'],
+    ['已解決','Resolved'],
+    ['信義旗艦店','Xinyi Flagship'],
+    ['主要門市','Main store'],
+    ['8 道菜 · 3 項警示 · 今日已掃描','8 dishes · 3 alerts · scanned today'],
+    ['62.5% 健康','62.5% healthy'],
+    ['大安門市','Da’an Store'],
+    ['狀況良好','Good condition'],
+    ['12 道菜 · 1 項警示 · 今日已掃描','12 dishes · 1 alert · scanned today'],
+    ['91.7% 健康','91.7% healthy'],
+    ['松山門市','Songshan Store'],
+    ['需要關注','Needs attention'],
+    ['10 道菜 · 4 項警示 · 今日已掃描','10 dishes · 4 alerts · scanned today'],
+    ['40.0% 健康','40.0% healthy'],
+    ['新增門市','Add store'],
+    ['Growth 方案可加至 3 家','Growth plan allows up to 3'],
+    ['用戶權限管理','User Access Management'],
+    ['+ 邀請成員','+ Invite Member'],
+    ['用戶','User'],
+    ['角色','Role'],
+    ['可存取門市','Accessible stores'],
+    ['最後登入','Last login'],
+    ['👑 老闆','👑 Owner'],
+    ['全部門市','All stores'],
+    ['剛剛','Just now'],
+    ['陳美華','Chen Meihua'],
+    ['📋 經理','📋 Manager'],
+    ['信義店','Xinyi Store'],
+    ['2小時前','2 hours ago'],
+    ['停用','Disable'],
+    ['林主廚','Chef Lin'],
+    ['🍳 廚房','🍳 Kitchen'],
+    ['信義店（唯讀）','Xinyi Store (read-only)'],
+    ['昨天','Yesterday'],
+    ['張採購','Zhang (Purchasing)'],
+    ['🛒 採購','🛒 Purchasing'],
+    ['全部門市（唯讀）','All stores (read-only)'],
+    ['⚡ 掃描設定','⚡ Scan Settings'],
+    ['自動掃描時間','Auto-Scan Time'],
+    ['每天 07:30','Daily 07:30'],['每天 07:00','Daily 07:00'],['每天 08:00','Daily 08:00'],['每天 09:00','Daily 09:00'],
+    ['AI 建議語言','AI Advice Language'],
+    ['繁體中文','Traditional Chinese'],
+    ['簡體中文','Simplified Chinese'],
+    ['掃描失敗重試','Retry on Scan Failure'],
+    ['🔔 通知設定','🔔 Notifications'],
+    ['LINE 推播通知','LINE Push Notifications'],
+    ['Email 每日摘要','Daily Email Summary'],
+    ['成本更新提醒','Cost Update Alerts'],
+    ['每週彙整報告','Weekly Summary Report'],
+    ['🔒 安全與資料','🔒 Security & Data'],
+    ['隨時匯出全部資料','Export all data anytime'],
+    ['匯出 CSV','Export CSV'],
+    ['資料儲存地區','Data storage region'],
+    ['亞太（台灣）ap-northeast-1','Asia-Pacific (Taiwan) ap-northeast-1'],
+    ['API 金鑰','API Key'],
+    ['複製金鑰','Copy Key'],
+    ['雙因素驗證','Two-Factor Authentication'],
+    ['💳 訂閱方案','💳 Subscription Plan'],
+    ['當前方案','Current plan'],
+    ['標準版 Growth NT$1,499/月','Growth NT$1,499/mo'],
+    ['到期日','Expiry date'],
+    ['2026 年 06 月 03 日','June 3, 2026'],
+    ['門市額度','Store quota'],
+    ['本月 AI 用量','AI usage this month'],
+    ['847 / 無限','847 / Unlimited'],
+    ['取消訂閱（立即生效）','Cancel subscription (effective immediately)'],
+    ['📋 食材成本明細','📋 Ingredient Cost Details'],
+    ['忽略此建議','Ignore this advice'],
+    ['✓ 標記為已採納','✓ Mark as adopted'],
+    ['編輯成本','Edit Cost'],
+    ['⚡ 快速輸入','⚡ Quick Entry'],
+    ['📋 詳細項目','📋 Detailed Items'],
+    ['📥 Excel 匯入','📥 Excel Import'],
+    ['項目名稱','Item name'],
+    ['金額（新台幣）','Amount (NT$)'],
+    ['直接輸入該項目的總金額，最快速','Enter the item’s total amount directly — fastest'],
+    ['上傳 CSV 檔（第一欄為項目名稱、第二欄為金額）','Upload CSV (column 1 = item name, column 2 = amount)'],
+    ['CSV 範例格式：','CSV example format:'],
+    ['電費,3500','Electricity,3500'],
+    ['水費,1200','Water,1200'],
+    ['瓦斯,2800','Gas,2800'],
+    ['網路,1500','Internet,1500'],
+    ['📄 下載範例 CSV 範本','📄 Download sample CSV template'],
+    ['取消','Cancel'],
+    ['儲存','Save'],
+    ['今日推播','Today Push'],
+    ['總覽','Overview'],
+    ['功能','Features'],
+    ['定價','Pricing'],
+    ['AI 建議','AI Advice'],
+    ['健康','Healthy'],
+    ['全部','All'],
+    ['王','W'],['陳','C'],['林','L'],['張','Z']
+  ];
+  EN.sort(function(a,b){ return b[0].length - a[0].length; });
+
+  var orig = new WeakMap();   // textNode -> 原始繁體字串
+  var current = 'zh-TW';   // 永遠預設繁體中文（不記憶上次選擇）
+  var busy = false;
+
+  function toSC(s){ var r=s; for(var i=0;i<TC2SC.length;i++){ r=r.split(TC2SC[i][0]).join(TC2SC[i][1]); } return r; }
+  function toEN(s){ var r=s; for(var i=0;i<EN.length;i++){ r=r.split(EN[i][0]).join(EN[i][1]); } return r; }
+
+  function tNode(n){
+    if(!orig.has(n)) orig.set(n, n.nodeValue);
+    var o = orig.get(n), out = o;
+    if(current==='zh-CN') out = toSC(o);
+    else if(current==='en') out = toEN(o);
+    if(n.nodeValue !== out) n.nodeValue = out;
+  }
+  function walk(root){
+    var tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode:function(n){
+        if(!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var p=n.parentNode; if(p&&(p.tagName==='SCRIPT'||p.tagName==='STYLE')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var arr=[],n; while(n=tw.nextNode()) arr.push(n); arr.forEach(tNode);
+  }
+  function applyLang(lang){
+    current = lang;   // 只影響當次瀏覽，不寫入儲存
+    document.documentElement.lang = lang;
+    busy = true; walk(document.body); busy = false;
+    document.querySelectorAll('.lang-select').forEach(function(s){ s.value = lang; });
+  }
+  window.applyLang = applyLang;
+
+  // 動態新增內容（如掃描後新列）即時套用當前語言
+  var mo = new MutationObserver(function(muts){
+    if(busy || current==='zh-TW') return;
+    busy = true;
+    muts.forEach(function(m){ m.addedNodes.forEach(function(nd){
+      if(nd.nodeType===3) tNode(nd); else if(nd.nodeType===1) walk(nd);
+    });});
+    busy = false;
+  });
+  mo.observe(document.body,{childList:true,subtree:true});
+
+  // ── 設定持久化 ──
+  window.setScanTime = function(v){ localStorage.setItem('pg_scan_time', v); if(window.showToast) showToast('success','已設定自動掃描時間：每天 '+v+'（下次推播生效）'); };
+  window.setRestaurantType = function(v){ localStorage.setItem('pg_restaurant_type', v); };
+
+  // ── 初始化：還原使用者上次的選擇 ──
+  var st = localStorage.getItem('pg_scan_time');
+  if(st) document.querySelectorAll('.scan-time-select').forEach(function(s){ s.value = st; });
+  var rt = localStorage.getItem('pg_restaurant_type');
+  if(rt){ var el=document.getElementById('restaurant-type'); if(el) el.value=rt; }
+  localStorage.removeItem('pg_lang');   // 清掉舊版殘留的記憶
+  document.querySelectorAll('.lang-select').forEach(function(s){ s.value='zh-TW'; });
+})();
+</script>
+
+<!-- ══════════ Stage1：LINE 登入 + 每用戶真實資料 ══════════ -->
+<script>
+function lineLogin(){ location.href = BACKEND_URL + '/auth/line/login'; }
+function pgAuth(){ try { return JSON.parse(localStorage.getItem('pg_auth')||'null'); } catch(e){ return null; } }
+function pgLogout(){ localStorage.removeItem('pg_auth'); location.href = location.pathname; }
+
+var MY_MENU = null, MY_THRESHOLD = 25;
+
+// 解析登入回呼（#lineauth=base64url）
+(function(){
+  var m = location.hash.match(/lineauth=([^&]+)/);
+  if (m){
+    try {
+      var b = m[1].replace(/-/g,'+').replace(/_/g,'/');
+      var data = JSON.parse(decodeURIComponent(escape(atob(b))));
+      if (data.uid && data.sig) localStorage.setItem('pg_auth', JSON.stringify(data));
+    } catch(e){}
+    history.replaceState(null,'',location.pathname);
+  }
+  var err = location.hash.match(/loginerror=([^&]+)/);
+  if (err){
+    history.replaceState(null,'',location.pathname);
+    setTimeout(function(){ if(window.showToast) showToast('warn','LINE 登入失敗：'+decodeURIComponent(err[1])); }, 800);
+  }
+})();
+
+// 登入者打開網站 → 直接進 Dashboard 載入自己的資料
+window.addEventListener('DOMContentLoaded', function(){
+  var auth = pgAuth();
+  if (auth){
+    var nb = document.getElementById('nav-login');
+    if (nb){ nb.textContent = '進入後台（'+(auth.name||'已登入')+'）'; }
+    showScreen('screen-dashboard');
+    loadMyData();
+  }
+});
+
+function authHeaders(){ var a = pgAuth(); return a ? { 'X-Auth-Sig': a.sig } : {}; }
+
+async function loadMyData(){
+  var auth = pgAuth(); if (!auth) return;
+  try {
+    var r = await fetch(BACKEND_URL + '/api/menu/' + auth.uid, { headers: authHeaders(), signal: AbortSignal.timeout(35000) });
+    if (r.status === 401){ if(window.showToast) showToast('warn','登入已過期，請重新登入'); pgLogout(); return; }
+    if (r.status === 404){ renderUserBanner(auth.name, null); return; }   // 還沒綁 Bot
+    var j = await r.json();
+    MY_MENU = j.menu || []; MY_THRESHOLD = j.threshold || 25;
+    renderUserBanner(auth.name, j);
+    renderMyMenu();
+    enableMenuEditing();
+  } catch(e){
+    if(window.showToast) showToast('info','伺服器喚醒中（約 30 秒），請稍後重新整理');
+  }
+}
+
+// 頂部登入狀態橫幅
+function renderUserBanner(name, data){
+  var old = document.getElementById('pg-user-banner'); if (old) old.remove();
+  var host = document.querySelector('.dash-main') || document.body;
+  var bar = document.createElement('div');
+  bar.id = 'pg-user-banner';
+  bar.style.cssText = 'margin:0 0 1rem;padding:.7rem 1rem;border-radius:.6rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;font-size:.85rem;font-weight:700;';
+  var inner;
+  if (!data){
+    bar.style.background = '#FEF3C7'; bar.style.border = '1px solid #FCD34D'; bar.style.color = '#92400E';
+    inner = '👋 ' + name + '，你已登入，但還沒綁定 LINE Bot —— 請先用手機加入官方帳號並傳「綁定」，再重新整理本頁。';
+  } else if (data.is_demo){
+    bar.style.background = '#DBEAFE'; bar.style.border = '1px solid #93C5FD'; bar.style.color = '#1E40AF';
+    inner = '✅ 已登入：' + name + '　|　目前顯示<b>示範菜單</b>——到「菜單管理」按「+ 新增菜色」建立你自己的菜單，毛利警報就會用你的真實資料。';
+  } else {
+    bar.style.background = '#D1FAE5'; bar.style.border = '1px solid #6EE7B7'; bar.style.color = '#065F46';
+    inner = '✅ 已登入：' + name + '　|　<b>我的菜單</b>（' + (MY_MENU?MY_MENU.length:0) + ' 道菜・警戒線 ' + MY_THRESHOLD + '%）每日 07:30 LINE 推播你的真實數字。';
+  }
+  bar.innerHTML = inner + '<button onclick="pgLogout()" style="margin-left:auto;padding:.3rem .8rem;border-radius:.4rem;background:rgba(0,0,0,.08);font-weight:700">登出</button>';
+  host.insertBefore(bar, host.firstChild);
+}
+
+// 用自己的菜單重繪「菜單管理」表格與計數
+function renderMyMenu(){
+  if (!MY_MENU) return;
+  var tb = document.getElementById('menu-rows'); if (!tb) return;
+  var warn = 0, ok = 0, rows = '';
+  MY_MENU.forEach(function(m, i){
+    var isWarn = m.margin < MY_THRESHOLD; if (isWarn) warn++; else ok++;
+    var color = isWarn ? 'r-red' : (m.margin < MY_THRESHOLD + 10 ? 'r-blu' : 'r-grn');
+    var badge = isWarn ? '<span class="badge bw">⚠️ 警示</span>' : '<span class="badge bo">✅ 健康</span>';
+    rows += '<tr class="data-row" data-t="' + (isWarn?'warn':'ok') + '" onclick="editDish(' + i + ')">'
+      + '<td>' + m.name + '</td><td class="r">NT$' + m.price + '</td><td class="r">NT$' + m.cost + '</td>'
+      + '<td class="r"><span class="' + color + '">' + m.margin + '%</span></td>'
+      + '<td class="c">' + badge + '</td><td><span class="ai-txt">每日 07:30 自動生成</span></td></tr>';
+  });
+  tb.innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:2rem">還沒有菜色——按右上「+ 新增菜色」開始</td></tr>';
+  var wc = document.getElementById('warn-cnt'); if (wc) wc.textContent = warn;
+  var sc = document.getElementById('sg-cnt'); if (sc) sc.textContent = warn;
+  var tabs = document.querySelectorAll('.ftab');
+  if (tabs.length === 3){ tabs[0].textContent = '全部 (' + MY_MENU.length + ')'; tabs[1].textContent = '⚠️ 警示 (' + warn + ')'; tabs[2].textContent = '✅ 健康 (' + ok + ')'; }
+}
+
+// 「+ 新增菜色」與列點擊 → 真的能編輯
+function enableMenuEditing(){
+  document.querySelectorAll('button, .btn-s, .btn-2nd').forEach(function(b){
+    if (b.textContent.indexOf('新增菜色') !== -1){ b.onclick = function(){ addDish(); }; }
+  });
+}
+function addDish(){
+  var name = prompt('菜色名稱？（例：滷肉飯）'); if (!name) return;
+  var price = Number(prompt('售價（NT$）？')); if (!price) return;
+  var cost = Number(prompt('進貨成本（NT$，你實際的食材成本）？')); if (isNaN(cost)) return;
+  MY_MENU = MY_MENU || [];
+  MY_MENU.push({ name: name, price: price, cost: cost, margin: +(((price - cost) / price) * 100).toFixed(1) });
+  saveMyMenu('已新增「' + name + '」');
+}
+function editDish(i){
+  var m = MY_MENU[i]; if (!m) return;
+  var act = prompt('編輯「' + m.name + '」：\n輸入新的「售價,進貨成本」（例：120,65）\n或輸入 del 刪除這道菜', m.price + ',' + m.cost);
+  if (act === null) return;
+  if (act.trim().toLowerCase() === 'del'){
+    if (confirm('確定刪除「' + m.name + '」？')) { MY_MENU.splice(i,1); saveMyMenu('已刪除「' + m.name + '」'); }
+    return;
+  }
+  var p = act.split(',').map(function(x){ return Number(x.trim()); });
+  if (p.length === 2 && p[0] > 0 && !isNaN(p[1])){
+    m.price = p[0]; m.cost = p[1]; m.margin = +(((p[0]-p[1])/p[0])*100).toFixed(1);
+    saveMyMenu('已更新「' + m.name + '」');
+  } else { if(window.showToast) showToast('warn','格式不對，請輸入像 120,65'); }
+}
+async function saveMyMenu(msg){
+  var auth = pgAuth(); if (!auth) return;
+  try {
+    var r = await fetch(BACKEND_URL + '/api/menu/' + auth.uid, {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+      body: JSON.stringify({ menu: MY_MENU, threshold: MY_THRESHOLD }),
+      signal: AbortSignal.timeout(35000),
+    });
+    var j = await r.json();
+    if (j.success){
+      if(window.showToast) showToast('success', msg + '，已存雲端＋LINE 推播最新報告 📲');
+      loadMyData();
+    } else { throw new Error(j.error || 'save failed'); }
+  } catch(e){ if(window.showToast) showToast('warn','儲存失敗：' + e.message); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Restaurant-profitguard — 餐廳利潤小幫手</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'PingFang TC','Microsoft JhengHei','Segoe UI',sans-serif;}
+body{background:#f8fafc;color:#1e293b;font-size:14px;overflow-x:hidden;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;font-size:inherit;}
+input,select,textarea{font-family:inherit;font-size:inherit;outline:none;}
+:root{
+  --brand:#ea580c;--brand-d:#c2410c;--brand-l:#fff7ed;--brand-b:#fed7aa;
+  --red:#ef4444;--green:#10b981;--blue:#3b82f6;--amber:#f59e0b;
+  --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;--s300:#cbd5e1;
+  --s400:#94a3b8;--s500:#64748b;--s600:#475569;--s700:#334155;--s800:#1e293b;
+}
+/* SCREENS */
+.screen{display:none!important;width:100%;min-height:100vh;}
+.screen.active{display:flex!important;width:100%;}
+#screen-landing.active{flex-direction:column;}
+#screen-onboard.active{flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff7ed 0%,#f8fafc 100%);padding:2rem;}
+#screen-dashboard.active{flex-direction:row;}
+
+/* TRANSITIONS */
+.screen.active{animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tab-content{display:none;padding:2rem;animation:fadeIn .2s ease;}
+.tab-content.show{display:block;}
+.card-hover{transition:transform .18s,box-shadow .18s;}
+.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.1);}
+
+/* LANDING NAV */
+.l-nav{background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--s100);padding:.875rem 3rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:.5rem;font-size:1.25rem;font-weight:900;letter-spacing:-.02em;}
+.logo .accent{color:var(--brand);}
+.nav-links{display:flex;align-items:center;gap:2rem;font-size:.875rem;color:var(--s500);}
+.nav-links span{cursor:pointer;transition:color .15s;padding:.25rem 0;border-bottom:2px solid transparent;}
+.nav-links span:hover{color:var(--s800);border-bottom-color:var(--brand);}
+.btn-cta{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.5625rem 1.375rem;border-radius:.625rem;font-weight:700;font-size:.875rem;box-shadow:0 4px 12px rgba(234,88,12,.3);transition:all .18s;}
+.btn-cta:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(234,88,12,.4);}
+
+/* HERO */
+.hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6rem 2rem 4rem;text-align:center;background:linear-gradient(180deg,#fff7ed 0%,#fff 100%);}
+.hero-pill{display:inline-flex;align-items:center;gap:.5rem;background:var(--brand-l);color:var(--brand-d);border:1px solid var(--brand-b);padding:.375rem 1rem;border-radius:9999px;font-size:.8125rem;font-weight:600;margin-bottom:2rem;}
+.pulse{width:.5rem;height:.5rem;background:var(--brand);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.hero h1{font-size:3.5rem;font-weight:900;line-height:1.1;color:var(--s800);margin-bottom:1.5rem;letter-spacing:-.03em;}
+.hero h1 em{color:var(--brand);font-style:normal;}
+.hero p{font-size:1.125rem;color:var(--s500);max-width:38rem;line-height:1.75;margin-bottom:2.5rem;}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+.btn-hero-p{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.9375rem 2.25rem;border-radius:.875rem;font-size:1rem;font-weight:700;box-shadow:0 6px 20px rgba(234,88,12,.35);transition:all .2s;}
+.btn-hero-p:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(234,88,12,.45);}
+.btn-hero-o{background:#fff;color:var(--s700);border:1.5px solid var(--s200);padding:.9375rem 2.25rem;border-radius:.875rem;font-size:1rem;font-weight:600;transition:all .2s;}
+.btn-hero-o:hover{border-color:var(--brand);color:var(--brand);}
+
+/* FEATURE BLOCKS */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:56rem;margin:0 auto;padding:3rem 2rem;}
+.feature-card{background:#fff;border:1px solid var(--s100);border-radius:1.25rem;padding:1.75rem;transition:all .2s;}
+.feature-card:hover{border-color:var(--brand-b);box-shadow:0 8px 24px rgba(234,88,12,.08);}
+.f-icon{font-size:2rem;margin-bottom:1rem;}
+.f-title{font-size:1rem;font-weight:700;margin-bottom:.5rem;}
+.f-desc{font-size:.875rem;color:var(--s500);line-height:1.6;}
+
+/* STATS */
+.stats{background:#fff;border-top:1px solid var(--s100);border-bottom:1px solid var(--s100);padding:3rem 2rem;}
+.stats-inner{max-width:48rem;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:2rem;}
+.s-num{font-size:2.5rem;font-weight:900;color:var(--brand);margin-bottom:.25rem;}
+.s-label{font-size:.875rem;color:var(--s500);}
+
+/* PRICING */
+.pricing{padding:5rem 2rem;background:var(--s50);}
+.pricing h2{font-size:2rem;font-weight:900;text-align:center;margin-bottom:.75rem;}
+.pricing-sub{text-align:center;color:var(--s500);margin-bottom:3rem;font-size:.9375rem;}
+.p-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:56rem;margin:0 auto;}
+.p-card{background:#fff;border:1px solid var(--s200);border-radius:1.25rem;padding:2rem;position:relative;transition:all .2s;}
+.p-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.1);}
+.p-card.hot{background:linear-gradient(145deg,#ea580c,#c2410c);color:#fff;border:none;box-shadow:0 8px 30px rgba(234,88,12,.4);}
+.hot-tag{position:absolute;top:-1rem;left:50%;transform:translateX(-50%);background:#fbbf24;color:#78350f;font-size:.75rem;font-weight:800;padding:.3rem .9rem;border-radius:9999px;}
+.p-name{font-size:.875rem;font-weight:600;opacity:.7;margin-bottom:.75rem;}
+.p-price{font-size:2.5rem;font-weight:900;margin-bottom:.25rem;}
+.p-price sub{font-size:.9rem;font-weight:400;opacity:.6;}
+.p-meta{font-size:.8125rem;opacity:.6;margin-bottom:1.5rem;}
+.p-list{list-style:none;font-size:.875rem;margin-bottom:2rem;display:flex;flex-direction:column;gap:.625rem;}
+.p-list li{opacity:.85;}
+.p-list li::before{content:'✓  ';font-weight:700;}
+.btn-p{width:100%;padding:.75rem;border-radius:.625rem;font-size:.875rem;font-weight:700;transition:all .18s;}
+.btn-p-o{border:1.5px solid var(--brand);color:var(--brand);}
+.btn-p-o:hover{background:var(--brand-l);}
+.btn-p-w{background:#fff;color:var(--brand);}
+.btn-p-w:hover{background:#fef2ec;}
+.btn-p-g{border:1px solid var(--s300);color:var(--s600);}
+.btn-p-g:hover{background:var(--s50);}
+
+/* ONBOARD */
+.ob-card{background:#fff;border-radius:1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.12);width:100%;max-width:30rem;padding:2.25rem;}
+.ob-steps{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;}
+.ob-dots{display:flex;align-items:center;gap:.375rem;}
+.ob-dot{width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;transition:all .2s;}
+.ob-dot.act{background:var(--brand);color:#fff;}
+.ob-dot.done{background:var(--green);color:#fff;}
+.ob-dot.idle{background:var(--s200);color:var(--s400);}
+.ob-sep{flex:1;height:2px;background:var(--s100);max-width:2.5rem;}
+.ob-back{font-size:.8125rem;color:var(--s400);cursor:pointer;}
+.ob-back:hover{color:var(--s600);}
+.step{display:none;}
+.step.show{display:block;animation:fadeIn .2s ease;}
+.ob-title{font-size:1.5rem;font-weight:900;margin-bottom:.25rem;}
+.ob-sub{font-size:.8125rem;color:var(--s500);margin-bottom:1.5rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:.8125rem;font-weight:600;color:var(--s700);margin-bottom:.375rem;}
+.field input,.field select{width:100%;border:1.5px solid var(--s200);border-radius:.625rem;padding:.625rem 1rem;font-size:.875rem;transition:border .15s,box-shadow .15s;}
+.field input:focus,.field select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(234,88,12,.12);}
+.pos-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;}
+.pos-btn{border:1.5px solid var(--s200);border-radius:.625rem;padding:.625rem;text-align:center;font-size:.8125rem;cursor:pointer;transition:all .15s;}
+.pos-btn.sel{border-color:var(--brand);background:var(--brand-l);color:var(--brand-d);font-weight:700;}
+.slider-row{display:flex;align-items:center;gap:.75rem;}
+.slider-row input[type=range]{flex:1;accent-color:var(--brand);height:.25rem;}
+.slider-val{color:var(--brand);font-weight:800;min-width:2.75rem;text-align:right;}
+.hint{font-size:.75rem;color:var(--s400);margin-top:.25rem;}
+.upload-zone{border:2px dashed var(--s200);border-radius:.875rem;padding:2.5rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:1rem;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--brand);background:var(--brand-l);}
+.uz-icon{font-size:2.5rem;margin-bottom:.625rem;}
+.uz-title{font-weight:600;margin-bottom:.25rem;}
+.uz-sub{font-size:.75rem;color:var(--s400);}
+.sep-text{text-align:center;color:var(--s400);font-size:.8125rem;margin:.875rem 0;}
+.btn-2nd{width:100%;border:1.5px solid var(--s200);color:var(--s600);padding:.625rem;border-radius:.75rem;font-size:.8125rem;font-weight:500;transition:all .15s;margin-bottom:.5rem;}
+.btn-2nd:hover{background:var(--s50);border-color:var(--s300);}
+.qr-box{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:.875rem;padding:1.5rem;text-align:center;margin-bottom:1.25rem;}
+.qr-ph{width:7.5rem;height:7.5rem;background:var(--s200);border-radius:.75rem;margin:.75rem auto;display:flex;align-items:center;justify-content:center;color:var(--s400);font-size:.75rem;}
+.qr-title{font-weight:800;color:#00B900;font-size:.9375rem;margin-bottom:.25rem;}
+.qr-sub{font-size:.75rem;color:var(--s500);}
+.qr-img{width:9rem;height:9rem;display:block;margin:.625rem auto;border-radius:.5rem;border:3px solid #00B900;padding:4px;background:#fff;}
+/* LINE PREVIEW */
+.wx-preview{background:#ededed;border-radius:.875rem;padding:1rem;margin-top:1rem;}
+.lp-label{font-size:.6875rem;color:var(--s500);margin-bottom:.5rem;font-weight:700;letter-spacing:.05em;}
+.wx-card{background:#fff;border-radius:.625rem;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.wx-hd{background:#00B900;padding:.625rem .875rem;display:flex;align-items:center;gap:.5rem;}
+.wx-hd-icon{font-size:1.1rem;}
+.wx-hd-name{font-weight:700;color:#fff;font-size:.875rem;flex:1;}
+.wx-hd-time{font-size:.6875rem;color:rgba(255,255,255,.75);}
+.wx-body{padding:.75rem .875rem;}
+.wx-msg-title{font-size:.875rem;font-weight:700;color:#1a1a1a;margin-bottom:.625rem;}
+.wx-field{display:flex;justify-content:space-between;align-items:flex-start;padding:.3rem 0;border-bottom:1px solid #f5f5f5;font-size:.8125rem;}
+.wx-field:last-child{border-bottom:none;}
+.wx-fl{color:#999;}
+.wx-fv{color:#1a1a1a;font-weight:500;text-align:right;}
+.wx-fv.red{color:#ef4444;}
+.wx-ft{background:#fafafa;padding:.625rem .875rem;text-align:center;font-size:.8125rem;color:#00B900;font-weight:600;border-top:1px solid #f0f0f0;cursor:pointer;}
+/* BIND STATUS */
+.bind-status{display:none;background:linear-gradient(135deg,#f0fdf4,#fff);border:1.5px solid #86efac;border-radius:.875rem;padding:.875rem 1.125rem;text-align:center;margin-top:1rem;}
+.bind-status.show{display:block;}
+.bind-ok-icon{font-size:2rem;margin-bottom:.25rem;}
+.bind-ok-text{font-weight:700;color:#166534;font-size:.9375rem;}
+.bind-ok-sub{font-size:.8125rem;color:var(--s500);margin-top:.25rem;}
+.skip-btn{width:100%;color:var(--s400);padding:.5rem;font-size:.8125rem;transition:color .15s;margin-top:.5rem;}
+.skip-btn:hover{color:var(--s600);}
+.done-emoji{font-size:3.5rem;text-align:center;margin-bottom:1rem;animation:bounce .5s ease;}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.done-list{background:var(--s50);border-radius:.875rem;padding:1rem 1.25rem;margin-bottom:1.5rem;}
+.done-item{display:flex;align-items:center;gap:.625rem;font-size:.875rem;padding:.25rem 0;}
+.done-ck{color:var(--green);font-weight:700;}
+.btn-main{width:100%;background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.8125rem;border-radius:.875rem;font-size:.9375rem;font-weight:700;box-shadow:0 4px 14px rgba(234,88,12,.3);transition:all .2s;margin-top:.5rem;}
+.btn-main:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(234,88,12,.4);}
+
+/* DASHBOARD */
+.sidebar{width:13.5rem;background:#fff;border-right:1px solid var(--s100);display:flex;flex-direction:column;padding:1.25rem 0;height:100vh;position:sticky;top:0;flex-shrink:0;}
+.sb-logo{padding:.25rem 1.25rem 1.75rem;}
+.sb-logo .sub{font-size:.6875rem;color:var(--s400);margin-top:.25rem;}
+.sb-nav{padding:0 .625rem;flex:1;}
+.sb-item{display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;border-radius:.625rem;font-size:.875rem;color:var(--s500);cursor:pointer;transition:all .18s;margin-bottom:.125rem;position:relative;}
+.sb-item:hover,.sb-item.act{background:rgba(234,88,12,.09);color:var(--brand);}
+.sb-item.act{font-weight:600;}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.625rem;border-radius:9999px;width:1.125rem;height:1.125rem;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.sb-user{padding:.875rem 1.25rem;border-top:1px solid var(--s100);display:flex;align-items:center;gap:.625rem;}
+.u-av{width:1.875rem;height:1.875rem;border-radius:50%;background:linear-gradient(135deg,#fef3c7,#fde68a);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#92400e;flex-shrink:0;}
+.u-name{font-size:.8125rem;font-weight:600;}
+.u-role{font-size:.6875rem;color:var(--s400);}
+
+/* DASH MAIN */
+.dash-main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0;}
+.dash-hdr{background:#fff;border-bottom:1px solid var(--s100);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;}
+.dh-title{font-size:1.0625rem;font-weight:800;}
+.dh-sub{font-size:.6875rem;color:var(--s400);margin-top:.125rem;}
+.dh-live{color:var(--green);}
+.hdr-btns{display:flex;gap:.625rem;align-items:center;}
+.btn-s{padding:.375rem .875rem;border-radius:.5rem;font-size:.8125rem;font-weight:600;transition:all .18s;}
+.btn-so{border:1px solid var(--s200);color:var(--s500);}
+.btn-so:hover{background:var(--s50);}
+.btn-sp{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;box-shadow:0 2px 8px rgba(234,88,12,.25);}
+.btn-sp:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(234,88,12,.35);}
+.btn-sp:disabled{opacity:.6;transform:none;cursor:not-allowed;}
+
+/* SCAN PROGRESS */
+.scan-bar{display:none;background:linear-gradient(135deg,var(--brand-l),#fff);border-bottom:1px solid var(--brand-b);padding:.75rem 2rem;}
+.scan-bar.show{display:flex;align-items:center;gap:1rem;}
+.scan-text{font-size:.8125rem;font-weight:600;color:var(--brand-d);}
+.scan-track{flex:1;background:var(--brand-b);border-radius:9999px;height:.375rem;overflow:hidden;}
+.scan-fill{height:100%;background:var(--brand);border-radius:9999px;width:0%;transition:width .3s ease;}
+.scan-pct{font-size:.75rem;color:var(--brand-d);font-weight:700;min-width:2.5rem;text-align:right;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.kpi{background:#fff;border:1px solid var(--s100);border-radius:.875rem;padding:1.25rem;transition:all .18s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07);}
+.kpi.warn{background:linear-gradient(135deg,#fef2f2,#fff);border-color:#fecaca;}
+.kpi.good{background:linear-gradient(135deg,#f0fdf4,#fff);border-color:#bbf7d0;}
+.k-label{font-size:.6875rem;color:var(--s400);margin-bottom:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.k-label.warn{color:#f87171;}
+.k-label.good{color:#34d399;}
+.k-val{font-size:2rem;font-weight:900;color:var(--s800);line-height:1;}
+.k-val.warn{color:#dc2626;}
+.k-val.good{color:var(--green);}
+.k-meta{font-size:.6875rem;color:var(--s400);margin-top:.375rem;}
+.k-meta.up{color:var(--green);}
+.k-meta.dn{color:var(--red);}
+
+/* ALERT BANNER */
+.alert-banner{background:linear-gradient(135deg,#fffbeb,#fff);border:1.5px solid #fde68a;border-radius:.875rem;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.875rem;}
+.ab-icon{font-size:1.375rem;flex-shrink:0;}
+.ab-title{font-size:.875rem;font-weight:700;color:#92400e;}
+.ab-sub{font-size:.75rem;color:#b45309;margin-top:.125rem;}
+.ab-btn{margin-left:auto;font-size:.75rem;color:#92400e;border:1px solid #fde68a;padding:.3125rem .875rem;border-radius:.5rem;white-space:nowrap;flex-shrink:0;font-weight:600;transition:background .15s;}
+.ab-btn:hover{background:#fef9c3;}
+
+/* TABLE CARD */
+.t-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);overflow:hidden;}
+.t-hdr{padding:1rem 1.5rem;border-bottom:1px solid var(--s100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+.t-title{font-size:.9375rem;font-weight:700;color:var(--s700);}
+.f-tabs{display:flex;gap:.375rem;}
+.ftab{padding:.3125rem .875rem;border-radius:.5rem;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.ftab.act{background:var(--brand);color:#fff;}
+.ftab:not(.act){color:var(--s500);}
+.ftab:not(.act):hover{background:var(--s100);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--s50);padding:.625rem 1.5rem;text-align:left;font-size:.6875rem;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.05em;}
+th.r{text-align:right;}th.c{text-align:center;}
+td{padding:.875rem 1.5rem;border-top:1px solid rgba(241,245,249,.6);font-size:.875rem;}
+td.r{text-align:right;}td.c{text-align:center;}
+tr.data-row{cursor:pointer;transition:background .12s;}
+tr.data-row:hover td{background:#fafafa;}
+tr.data-row.filtered{display:none;}
+.badge{display:inline-flex;align-items:center;padding:.25rem .625rem;border-radius:9999px;font-size:.6875rem;font-weight:700;}
+.bw{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.bo{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;}
+.bm{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}
+.r-red{color:#dc2626;font-weight:800;}
+.r-grn{color:var(--green);font-weight:800;}
+.r-blu{color:var(--blue);font-weight:800;}
+.ai-txt{color:var(--s400);font-size:.75rem;max-width:14rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* AI SUGGESTIONS */
+.sg-hdr{margin-bottom:1.5rem;}
+.sg-hdr h2{font-size:1.125rem;font-weight:800;margin-bottom:.375rem;}
+.sg-hdr p{font-size:.875rem;color:var(--s400);}
+.sg-list{display:flex;flex-direction:column;gap:1rem;}
+.sg-card{background:#fff;border-radius:.875rem;border:1px solid #fecaca;padding:1.375rem;transition:all .18s;}
+.sg-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08);}
+.sg-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;}
+.sg-name{font-size:.9375rem;font-weight:800;color:var(--s800);}
+.sg-sub{font-size:.75rem;color:var(--red);margin-top:.125rem;}
+.sg-acts{display:flex;gap:.5rem;flex-shrink:0;}
+.btn-ign{font-size:.75rem;border:1px solid var(--s200);color:var(--s500);padding:.3125rem .75rem;border-radius:.5rem;transition:all .15s;}
+.btn-ign:hover{background:var(--s50);}
+.btn-ado{font-size:.75rem;background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;padding:.3125rem .75rem;border-radius:.5rem;font-weight:700;transition:all .15s;}
+.btn-ado:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(234,88,12,.3);}
+.sg-body{background:linear-gradient(135deg,#fffbeb,#fff);border:1px solid #fef3c7;border-radius:.625rem;padding:.875rem 1rem;font-size:.875rem;color:#92400e;line-height:1.7;margin-bottom:.75rem;}
+.sg-meta{display:flex;gap:1.5rem;font-size:.6875rem;color:var(--s400);flex-wrap:wrap;}
+.sg-adopted{background:linear-gradient(135deg,#f0fdf4,#fff);border:1px solid #bbf7d0;border-radius:.875rem;padding:1rem 1.375rem;display:flex;align-items:center;gap:.75rem;font-size:.875rem;color:#166534;}
+.sg-adopted .ck{font-size:1.25rem;}
+
+/* HISTORY */
+.h-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.h-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);padding:1.5rem;}
+.h-title{font-size:.9375rem;font-weight:700;color:var(--s700);margin-bottom:1.25rem;}
+.bar-chart{display:flex;align-items:flex-end;gap:.5rem;height:7.5rem;padding-bottom:.25rem;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:.375rem;flex:1;}
+.bar{border-radius:.25rem .25rem 0 0;width:100%;transition:height .5s ease;cursor:pointer;position:relative;}
+.bar:hover{filter:brightness(1.1);}
+.bar-lbl{font-size:.625rem;color:var(--s400);}
+.h-note{font-size:.6875rem;color:var(--green);margin-top:.75rem;font-weight:600;}
+.hb-list{display:flex;flex-direction:column;gap:.625rem;}
+.hb-row{display:flex;align-items:center;gap:.5rem;font-size:.75rem;}
+.hb-name{width:5.5rem;color:var(--s600);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+.hb-track{flex:1;background:var(--s100);border-radius:9999px;height:.4375rem;overflow:hidden;}
+.hb-fill{height:100%;border-radius:9999px;transition:width .6s ease;}
+.hb-val{width:2.75rem;text-align:right;font-weight:700;font-size:.8125rem;}
+.trend-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);padding:1.5rem;}
+.trend-title{font-size:.9375rem;font-weight:700;color:var(--s700);margin-bottom:1.25rem;}
+
+/* BRANCHES */
+.br-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;}
+.br-card{background:#fff;border-radius:.875rem;border:1px solid var(--s200);padding:1.375rem;transition:all .18s;}
+.br-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07);}
+.br-card.main{border:2px solid var(--brand-b);box-shadow:0 4px 16px rgba(234,88,12,.1);}
+.br-card.add{border:2px dashed var(--s200);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;color:var(--s400);min-height:9rem;}
+.br-card.add:hover{border-color:var(--brand-b);color:var(--brand);background:var(--brand-l);}
+.br-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem;}
+.br-name{font-weight:800;font-size:.9375rem;}
+.br-tag{font-size:.6875rem;padding:.1875rem .5rem;border-radius:9999px;font-weight:700;}
+.br-tag.m{background:#fef3c7;color:#c2410c;}
+.br-tag.g{background:#d1fae5;color:#065f46;}
+.br-tag.w{background:#fef3c7;color:#92400e;}
+.br-meta{font-size:.8125rem;color:var(--s500);margin-bottom:.875rem;}
+.br-prog{display:flex;align-items:center;gap:.5rem;}
+.prog-track{flex:1;background:var(--s100);border-radius:9999px;height:.4375rem;}
+.prog-fill{height:.4375rem;border-radius:9999px;transition:width .5s ease;}
+.prog-fill.brand{background:var(--brand);}
+.prog-fill.green{background:var(--green);}
+.prog-fill.red{background:var(--red);}
+.prog-pct{font-size:.6875rem;font-weight:700;}
+.prog-pct.brand{color:var(--brand);}
+.prog-pct.green{color:var(--green);}
+.prog-pct.red{color:var(--red);}
+.add-plus{font-size:2rem;margin-bottom:.375rem;}
+
+/* SETTINGS */
+.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.st-card{background:#fff;border-radius:.875rem;border:1px solid var(--s100);padding:1.375rem;}
+.st-title{font-size:.875rem;font-weight:800;color:var(--s700);margin-bottom:1.125rem;padding-bottom:.625rem;border-bottom:1px solid var(--s100);}
+.st-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;font-size:.875rem;}
+.st-row:last-child{margin-bottom:0;}
+.st-label{color:var(--s600);}
+.st-row select,.st-row input[type=number]{border:1px solid var(--s200);border-radius:.5rem;padding:.375rem .625rem;font-size:.8125rem;}
+.toggle{width:2.75rem;height:1.375rem;border-radius:9999px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle.off{background:var(--s200);}
+.toggle-k{position:absolute;top:.1875rem;width:1rem;height:1rem;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.toggle.on .toggle-k{left:1.5rem;}
+.toggle.off .toggle-k{left:.1875rem;}
+.btn-exp{font-size:.75rem;border:1px solid var(--brand-b);color:var(--brand);padding:.3125rem .75rem;border-radius:.5rem;font-weight:600;transition:all .15s;}
+.btn-exp:hover{background:var(--brand-l);}
+.st-muted{color:var(--s400);font-size:.8125rem;}
+.st-badge{background:#fff7ed;color:var(--brand-d);font-weight:800;font-size:.875rem;}
+.btn-cancel{width:100%;margin-top:.875rem;border:1px solid var(--s200);color:var(--s500);padding:.5rem;border-radius:.5rem;font-size:.8125rem;transition:all .15s;}
+.btn-cancel:hover{background:var(--s50);}
+
+/* MENU MANAGEMENT */
+.mm-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;}
+.mm-search{display:flex;align-items:center;gap:.5rem;border:1px solid var(--s200);border-radius:.625rem;padding:.375rem .875rem;background:#fff;}
+.mm-search input{border:none;font-size:.875rem;width:12rem;}
+.cost-warn{background:#fffbeb;border:1px solid #fef3c7;border-radius:.625rem;padding:.75rem 1rem;font-size:.8125rem;color:#b45309;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:100;padding:1rem;}
+.modal.open{display:flex;animation:fadeIn .18s ease;}
+.modal-box{background:#fff;border-radius:1.25rem;box-shadow:0 30px 80px rgba(0,0,0,.2);width:100%;max-width:30rem;max-height:90vh;overflow-y:auto;animation:slideUp .2s ease;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mb-hdr{display:flex;align-items:center;justify-content:space-between;padding:1.375rem 1.5rem;border-bottom:1px solid var(--s100);}
+.mb-title{font-size:1.0625rem;font-weight:900;}
+.mb-close{font-size:1.5rem;color:var(--s400);line-height:1;transition:color .15s;}
+.mb-close:hover{color:var(--s700);}
+.mb-body{padding:1.375rem 1.5rem;}
+.mb-stats{background:var(--s50);border-radius:.75rem;padding:1rem;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:.5rem;}
+.mb-sl{font-size:.6875rem;color:var(--s400);margin-bottom:.25rem;font-weight:600;}
+.mb-sv{font-size:1.0625rem;font-weight:800;}
+.mb-advice{border-radius:.75rem;padding:1rem 1.125rem;font-size:.875rem;line-height:1.7;margin-bottom:1.25rem;}
+.mb-advice.warn{background:linear-gradient(135deg,#fffbeb,#fff);border:1px solid #fef3c7;color:#92400e;}
+.mb-advice.ok{background:linear-gradient(135deg,#f0fdf4,#fff);border:1px solid #bbf7d0;color:#166534;}
+.mb-ingred{margin-bottom:1.25rem;}
+.mb-i-title{font-size:.8125rem;font-weight:700;color:var(--s600);margin-bottom:.625rem;}
+.ingred-list{display:flex;flex-direction:column;gap:.375rem;}
+.ingred-row{display:flex;align-items:center;justify-content:space-between;font-size:.8125rem;padding:.375rem .625rem;background:var(--s50);border-radius:.375rem;}
+.ingred-name{color:var(--s700);}
+.ingred-cost{font-weight:600;color:var(--s600);}
+.ingred-cost.high{color:var(--red);}
+.mb-total{display:flex;justify-content:space-between;font-size:.875rem;font-weight:700;padding:.625rem .625rem 0;border-top:1px solid var(--s100);margin-top:.25rem;}
+.mb-foot{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:1.25rem 1.5rem;border-top:1px solid var(--s100);}
+.btn-mg{padding:.6875rem;border-radius:.75rem;font-size:.875rem;font-weight:600;transition:all .18s;}
+.btn-mg-ghost{border:1px solid var(--s200);color:var(--s600);}
+.btn-mg-ghost:hover{background:var(--s50);}
+.btn-mg-p{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;box-shadow:0 3px 10px rgba(234,88,12,.25);}
+.btn-mg-p:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(234,88,12,.35);}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--s800);color:#fff;padding:.875rem 1.25rem;border-radius:.75rem;font-size:.875rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;display:none;align-items:center;gap:.625rem;min-width:16rem;}
+.toast.show{display:flex;animation:toastIn .25s ease;}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.toast.success{background:var(--green);}
+.toast.warn{background:var(--amber);color:#1e293b;}
+.toast.info{background:var(--blue);}
+
+/* ═══════════════════════════════════════════
+   響應式設計 — 平板（≤1024px）
+═══════════════════════════════════════════ */
+@media(max-width:1024px){
+  .features{grid-template-columns:repeat(2,1fr);padding:2rem 1.5rem;}
+  .p-grid{grid-template-columns:repeat(2,1fr);gap:1.25rem;}
+  .p-grid .p-card:last-child{grid-column:1/-1;}
+  .stats-inner{grid-template-columns:repeat(3,1fr);gap:1rem;}
+  /* Dashboard 垂直堆疊（!important 覆蓋 #screen-dashboard.active 的 row） */
+  #screen-dashboard.active{flex-direction:column !important;}
+  .sidebar{
+    width:100%;height:auto;min-height:unset;
+    flex-direction:row;align-items:center;
+    padding:.75rem 1rem;flex-wrap:nowrap;
+    overflow-x:auto;gap:.25rem;
+  }
+  .sb-logo{margin-bottom:0;margin-right:auto;flex-shrink:0;}
+  .sb-nav{display:flex;flex-direction:row;flex:unset;padding:0;}
+  .sb-item{margin-bottom:0;white-space:nowrap;flex-shrink:0;}
+  .sb-user{border-top:none;padding:.25rem .5rem;margin-left:auto;flex-shrink:0;}
+  .dash-main{overflow-y:auto;}
+}
+
+/* ═══════════════════════════════════════════
+   響應式設計 — 手機（≤768px）
+═══════════════════════════════════════════ */
+@media(max-width:768px){
+  /* 導覽列：隱藏連結，保留 CTA 按鈕 */
+  .l-nav{padding:.875rem 1.25rem;}
+  .nav-links span{display:none;}          /* 隱藏文字連結，保留「免費試用」按鈕 */
+  .hero{padding:5rem 1.25rem 3rem;}
+  .hero h1{font-size:2rem;line-height:1.3;}
+  .hero p{font-size:1rem;}
+  .hero-btns{flex-direction:column;align-items:stretch;gap:.75rem;}
+  .hero-btns button,.hero-btns a{width:100%;text-align:center;}
+
+  /* 功能區 */
+  .features{grid-template-columns:1fr;padding:2rem 1.25rem;gap:1rem;}
+  .feature-card{padding:1.5rem;}
+
+  /* 數據列 */
+  .stats{padding:2rem 1.25rem;}
+  .stats-inner{grid-template-columns:1fr;gap:1rem;text-align:left;}
+  .s-num{font-size:2rem;}
+
+  /* 定價 */
+  .pricing{padding:3rem 1.25rem;}
+  .p-grid{grid-template-columns:1fr;gap:1rem;}
+  .p-card{padding:1.75rem 1.5rem;}
+
+  /* Onboarding 卡片 */
+  #screen-onboard{padding:1.25rem;}
+  .ob-card{padding:1.5rem;border-radius:1rem;}
+
+  /* Dashboard 佈局（!important 覆蓋 #screen-dashboard.active 的 row） */
+  #screen-dashboard.active{flex-direction:column !important;}
+  .sidebar{
+    width:100%;height:auto;min-height:unset;
+    flex-direction:row;align-items:center;
+    padding:.625rem 1rem;flex-wrap:nowrap;
+    overflow-x:auto;gap:.25rem;
+    position:sticky;top:0;z-index:50;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  .sb-logo{flex-shrink:0;margin-bottom:0;margin-right:.75rem;}
+  .sb-logo .sub{display:none;}
+  .sb-nav{display:flex;flex-direction:row;flex:unset;padding:0;}
+  .sb-item{
+    flex-shrink:0;padding:.5rem .75rem;
+    border-radius:.5rem;white-space:nowrap;
+    margin-bottom:0;font-size:.8125rem;
+  }
+  .sb-user{display:none;}
+  .dash-main{padding:0;}
+  /* Dashboard 標頭 */
+  .dash-hdr{padding:.875rem 1rem;flex-wrap:wrap;gap:.5rem;}
+  .dh-title{font-size:1rem;}
+  .tab-content{padding:1rem;}
+
+  /* KPI 卡片：4欄→2欄 */
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.75rem;}
+  .kpi{padding:1rem;}
+  .k-val{font-size:1.75rem;}
+
+  /* 資料表格：橫向滾動 */
+  .t-card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{min-width:600px;}
+  .ai-txt{max-width:8rem;}
+
+  /* AI 建議卡片 */
+  .sg-card{padding:1rem;}
+  .sg-top{flex-wrap:wrap;gap:.5rem;}
+  .sg-meta{flex-wrap:wrap;gap:.375rem;}
+  .sg-acts{flex-wrap:nowrap;}
+
+  /* 歷史趨勢 */
+  .h-grid{grid-template-columns:1fr;}
+  .h-card{overflow-x:auto;}
+  .bar-chart{min-width:360px;}
+
+  /* Modal：從底部滑上 */
+  .modal{align-items:flex-end;}
+  .modal-box{
+    max-width:100%;
+    border-radius:1.25rem 1.25rem 0 0;
+    max-height:85vh;
+  }
+
+  /* Toast：底部全寬 */
+  .toast{
+    bottom:0;right:0;left:0;
+    border-radius:.75rem .75rem 0 0;
+    min-width:unset;width:100%;
+    justify-content:center;
+  }
+
+  /* 設定頁面 */
+  .st-grid{grid-template-columns:1fr !important;}
+  .st-card{padding:1.25rem;}
+
+  /* 門市管理 */
+  .br-grid{grid-template-columns:1fr !important;}
+
+  /* 警示橫幅 */
+  .alert-banner{flex-wrap:wrap;}
+  .ab-btn{margin-left:0;margin-top:.25rem;}
+}
+
+/* ═══════════════════════════════════════════
+   響應式設計 — 小手機（≤400px）
+═══════════════════════════════════════════ */
+@media(max-width:400px){
+  .hero h1{font-size:1.75rem;}
+  .kpi-grid{grid-template-columns:1fr;}
+  .ob-steps{gap:.25rem;}
+  .ob-dot{width:1.625rem;height:1.625rem;font-size:.6875rem;}
+  .hdr-btns .btn-so{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SCREEN 1: LANDING ══════════ -->
+<div id="screen-landing" class="screen active">
+  <nav class="l-nav">
+    <div class="logo" onclick="showScreen('screen-landing')" style="cursor:pointer">🍽️ Restaurant-<span class="accent">profitguard</span></div>
+    <div class="nav-links">
+      <span onclick="scrollToSection('features')">功能</span><span onclick="scrollToSection('pricing')">定價</span><span onclick="showToast('info','案例研究即將上線，敬請期待！')">案例</span><span onclick="showToast('info','部落格功能即將上線，敬請期待！')">部落格</span>
+      <button class="btn-cta" onclick="showScreen('screen-onboard')">免費試用 14 天</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-pill"><span class="pulse"></span>新興創業項目 · 預計服務台灣中小型餐廳</div>
+    <h1>每天早上 7:30<br><em>AI 主動告訴你</em><br>哪道菜在虧錢</h1>
+    <p>串接你的菜單，自動計算毛利率。低於警戒線立刻推播 LINE 通知，並附上 AI 改善建議。串接農業部每日食材行情，成本自動更新。不用懂技術，5 分鐘上線，隨時取消。</p>
+    <div class="hero-btns">
+      <button class="btn-hero-p" onclick="showScreen('screen-onboard')">免費開始 — 不需信用卡</button>
+      <button class="btn-hero-o" onclick="showScreen('screen-dashboard')">查看 Demo →</button>
+    </div>
+  </section>
+
+  <div class="features" id="features">
+    <div class="feature-card card-hover">
+      <div class="f-icon">📡</div>
+      <div class="f-title">每日自動掃描</div>
+      <div class="f-desc">每天早上 7:30 自動執行，掃描全部菜色毛利率，無需人工操作，結果直達你的 LINE。</div>
+    </div>
+    <div class="feature-card card-hover">
+      <div class="f-icon">🤖</div>
+      <div class="f-title">AI 精準建議</div>
+      <div class="f-desc">不只告訴你「哪道菜有問題」，還告訴你「怎麼調整食材用量、調多少售價」，有依據可執行。</div>
+    </div>
+    <div class="feature-card card-hover">
+      <div class="f-icon">🏪</div>
+      <div class="f-title">多門市管理</div>
+      <div class="f-desc">一個帳號管理多家門市，總部即時看到各店毛利健康狀況，異常門市立即標紅。</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stats-inner">
+      <div><div class="s-num">3.2%</div><div class="s-label">平均毛利率提升</div></div>
+      <div><div class="s-num">5min</div><div class="s-label">上線所需時間</div></div>
+      <div><div class="s-num">14天</div><div class="s-label">免費試用，隨時取消</div></div>
+    </div>
+  </div>
+
+  <div class="pricing" id="pricing">
+    <h2>簡單定價，按門市付費</h2>
+    <div class="pricing-sub">所有方案均含 14 天免費試用，無需綁定信用卡</div>
+    <div class="p-grid">
+      <div class="p-card card-hover">
+        <div class="p-name">Starter</div>
+        <div class="p-price">NT$1,499<sub>/月</sub></div>
+        <div class="p-meta">1 門市 · 100 道菜</div>
+        <ul class="p-list"><li>每日自動掃描</li><li>LINE 推播通知</li><li>AI 改善建議</li><li>CSV 批量匯入</li></ul>
+        <button class="btn-p btn-p-o" onclick="showScreen('screen-onboard')">開始試用</button>
+      </div>
+      <div class="p-card hot card-hover">
+        <div class="hot-tag">最受歡迎</div>
+        <div class="p-name">Growth</div>
+        <div class="p-price">NT$3,999<sub>/月</sub></div>
+        <div class="p-meta">3 門市 · 500 道菜</div>
+        <ul class="p-list"><li>所有 Starter 功能</li><li>歷史報表 &amp; 圖表</li><li>多用戶權限管理</li><li>跨門市彙整報告</li><li>PDF 匯出</li></ul>
+        <button class="btn-p btn-p-w" onclick="showScreen('screen-onboard')">開始試用</button>
+      </div>
+      <div class="p-card card-hover">
+        <div class="p-name">Enterprise</div>
+        <div class="p-price" style="color:#94a3b8">定制</div>
+        <div class="p-meta">無限門市 · 無限菜色</div>
+        <ul class="p-list"><li>所有 Growth 功能</li><li>POS 系統對接</li><li>REST API 串接</li><li>1 對 1 顧問服務</li><li>簽保密協議 (NDA)</li></ul>
+        <button class="btn-p btn-p-g" onclick="showToast('info','我們的銷售團隊將在 24 小時內聯絡你！')">聯絡我們</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN 2: ONBOARD ══════════ -->
+<div id="screen-onboard" class="screen">
+  <div class="ob-card">
+    <div class="ob-steps">
+      <div class="ob-dots">
+        <div class="ob-dot act" id="d1">1</div>
+        <div class="ob-sep"></div>
+        <div class="ob-dot idle" id="d2">2</div>
+        <div class="ob-sep"></div>
+        <div class="ob-dot idle" id="d3">3</div>
+        <div class="ob-sep"></div>
+        <div class="ob-dot idle" id="d4">4</div>
+      </div>
+      <span class="ob-back" onclick="showScreen('screen-landing')">← 返回</span>
+    </div>
+
+    <div id="ob1" class="step show">
+      <div class="ob-title">歡迎使用餐廳利潤小幫手</div>
+      <div class="ob-sub">先建立你的品牌，只需 30 秒</div>
+      <div class="field"><label>品牌 / 公司名稱</label><input value="鼎泰豐餐飲集團"></div>
+      <div class="field"><label>餐廳類型</label><select><option>中式料理</option><option>日式料理</option><option>台式小吃</option><option>西餐</option><option>飲料店</option></select></div>
+      <div class="field"><label>品牌定位</label>
+        <div class="pos-row">
+          <div class="pos-btn sel" onclick="selPos(this)">高端精緻</div>
+          <div class="pos-btn" onclick="selPos(this)">中高價位</div>
+          <div class="pos-btn" onclick="selPos(this)">平價實惠</div>
+        </div>
+      </div>
+      <div class="field"><label>毛利警戒線</label>
+        <div class="slider-row">
+          <input type="range" min="10" max="50" value="25" oninput="document.getElementById('sv').textContent=this.value+'%'">
+          <span class="slider-val" id="sv">25%</span>
+        </div>
+        <div class="hint">低於此數值自動觸發 AI 警示</div>
+      </div>
+      <button class="btn-main" onclick="goOb(2)">下一步 →</button>
+    </div>
+
+    <div id="ob2" class="step">
+      <div class="ob-title">匯入你的菜單</div>
+      <div class="ob-sub">支援 Excel / CSV，或使用範例資料</div>
+      <div class="upload-zone" id="uz" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')">
+        <div class="uz-icon">📤</div>
+        <div class="uz-title">點擊或拖曳上傳 Excel / CSV</div>
+        <div class="uz-sub">支援 .xlsx .csv 格式，最大 10MB</div>
+      </div>
+      <input type="file" id="file-input" accept=".xlsx,.csv" style="display:none" onchange="if(this.files.length){showToast('success','📥 已選取：'+this.files[0].name+'，正在解析…');this.value='';goOb(3);}">
+      <div class="sep-text">— 或 —</div>
+      <button class="btn-2nd" onclick="showToast('success','📥 菜單範本下載中…')">📥 下載菜單範本（Excel）</button>
+      <button class="btn-main" onclick="goOb(3)">使用範例資料繼續 →</button>
+    </div>
+
+    <div id="ob3" class="step">
+      <div class="ob-title">綁定 LINE，接收推播通知</div>
+      <div class="ob-sub">有警示時主動推播，不需每天登入查看</div>
+      <div class="qr-box">
+        <div class="qr-title">📷 掃碼加入 LINE 官方帳號</div>
+        <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40663vbbit&size=160x160&color=00B900" style="border-radius:8px;" alt="LINE 官方帳號 QR Code" />
+        <div class="qr-sub">掃碼加入後，傳送「<strong>綁定</strong>」即完成</div>
+      </div>
+      <div class="wx-preview">
+        <div class="lp-label">📱 綁定後每天 07:30 收到</div>
+        <div class="wx-card">
+          <div class="wx-hd">
+            <span class="wx-hd-icon">🛡️</span>
+            <span class="wx-hd-name">餐廳利潤小幫手 LINE 官方帳號</span>
+            <span class="wx-hd-time">07:30</span>
+          </div>
+          <div class="wx-body">
+            <div class="wx-msg-title">⚠️ 菜單毛利率預警通知</div>
+            <div class="wx-field"><span class="wx-fl">掃描門市</span><span class="wx-fv">鼎泰豐 · 信義旗艦店</span></div>
+            <div class="wx-field"><span class="wx-fl">預警品項</span><span class="wx-fv red">3 道低於警戒線 25%</span></div>
+            <div class="wx-field"><span class="wx-fl">最低毛利</span><span class="wx-fv red">排骨蛋炒飯 12.8%</span></div>
+            <div class="wx-field"><span class="wx-fl">AI 建議</span><span class="wx-fv">已生成，可立即查看</span></div>
+          </div>
+          <div class="wx-ft" onclick="showToast('info','完成設定後，每天 07:30 點此連結即可查看 AI 建議')">查看 AI 改善建議 →</div>
+        </div>
+      </div>
+      <div class="bind-status" id="bind-result">
+        <div class="bind-ok-icon">✅</div>
+        <div class="bind-ok-text">LINE 綁定成功！</div>
+        <div class="bind-ok-sub">已綁定 LINE 帳號：王小明 ｜ 明日 07:30 開始推播</div>
+      </div>
+      <button class="btn-main" id="btn-bind-wx" style="margin-top:1rem" onclick="doLineBind()">已加入，驗證綁定 →</button>
+      <button class="skip-btn" onclick="goOb(4)">暫時跳過</button>
+    </div>
+
+    <div id="ob4" class="step">
+      <div class="done-emoji">🎉</div>
+      <div class="ob-title" style="text-align:center">設定完成！</div>
+      <div class="ob-sub" style="text-align:center;margin-bottom:1.5rem">餐廳利潤小幫手已開始監控你的菜單<br>每天早上 7:30 自動掃描並推播結果</div>
+      <div class="done-list">
+        <div class="done-item"><span class="done-ck">✓</span>品牌：鼎泰豐餐飲集團（高端精緻）</div>
+        <div class="done-item"><span class="done-ck">✓</span>已匯入 8 道菜色</div>
+        <div class="done-item"><span class="done-ck">✓</span>LINE 通知已綁定</div>
+        <div class="done-item"><span class="done-ck">✓</span>毛利警戒線：25%</div>
+        <div class="done-item"><span class="done-ck">✓</span>首次掃描將於明日 07:30 執行</div>
+      </div>
+      <button class="btn-main" onclick="showScreen('screen-dashboard')">進入 Dashboard →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN 3: DASHBOARD ══════════ -->
+<div id="screen-dashboard" class="screen">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="logo" style="font-size:1rem;cursor:pointer" onclick="showScreen('screen-landing')">🍽️ Restaurant-<span class="accent">profitguard</span></div>
+      <div class="sub">鼎泰豐 · 信義旗艦店</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-item act" onclick="swTab('overview',this)"><span>📊</span>總覽</div>
+      <div class="sb-item" onclick="swTab('menu',this)"><span>🍽️</span>菜單管理</div>
+      <div class="sb-item" onclick="swTab('suggestions',this)"><span>🤖</span>AI 建議<span class="sb-badge" id="sg-cnt">3</span></div>
+      <div class="sb-item" onclick="swTab('history',this)"><span>📈</span>歷史趨勢</div>
+      <div class="sb-item" onclick="swTab('branches',this)"><span>🏪</span>門市管理</div>
+      <div class="sb-item" onclick="swTab('settings',this)"><span>⚙️</span>系統設定</div>
+    </nav>
+    <div class="sb-user">
+      <div class="u-av">王</div>
+      <div><div class="u-name">王小明</div><div class="u-role">老闆</div></div>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-hdr">
+      <div>
+        <div class="dh-title" id="dh-title">今日總覽</div>
+        <div class="dh-sub">最後掃描：今日 07:30 · <span class="dh-live">● 營運中</span></div>
+      </div>
+      <div class="hdr-btns">
+        <button class="btn-s btn-so" onclick="exportReport()">📄 匯出報表</button>
+        <button class="btn-s btn-sp" id="scan-btn" onclick="runScan()">⚡ 立即掃描</button>
+      </div>
+    </header>
+
+    <div class="scan-bar" id="scan-bar">
+      <span class="scan-text">🔍 正在掃描菜單毛利率...</span>
+      <div class="scan-track"><div class="scan-fill" id="scan-fill"></div></div>
+      <span class="scan-pct" id="scan-pct">0%</span>
+    </div>
+
+    <!-- TAB: OVERVIEW -->
+    <div id="tab-overview" class="tab-content show">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="k-label">菜色總數</div><div class="k-val">8</div><div class="k-meta">道菜 · 本月新增 1</div></div>
+        <div class="kpi warn"><div class="k-label warn">⚠️ 需要關注</div><div class="k-val warn" id="warn-cnt">3</div><div class="k-meta" style="color:#f87171">低於警戒線 25%</div></div>
+        <div class="kpi good"><div class="k-label good">✅ 平均毛利率</div><div class="k-val good">51.3%</div><div class="k-meta up">↑ 較上月 +1.2%</div></div>
+        <div class="kpi"><div class="k-label">AI 已優化</div><div class="k-val">5</div><div class="k-meta up">道菜已採納建議</div></div>
+      </div>
+
+      <div class="alert-banner">
+        <span class="ab-icon">⚠️</span>
+        <div>
+          <div class="ab-title">發現 3 道菜毛利率低於警戒線（25%）</div>
+          <div class="ab-sub">AI 已生成改善建議，建議本週內與廚房主管討論調整方案</div>
+        </div>
+        <button class="ab-btn" onclick="swTab('suggestions',document.querySelectorAll('.sb-item')[2])">查看建議 →</button>
+      </div>
+
+      <div class="t-card">
+        <div class="t-hdr">
+          <div class="t-title">菜單毛利一覽</div>
+          <div class="f-tabs">
+            <div class="ftab act" onclick="filterRows('all',this)">全部 (8)</div>
+            <div class="ftab" onclick="filterRows('warn',this)">⚠️ 警示 (3)</div>
+            <div class="ftab" onclick="filterRows('ok',this)">✅ 健康 (5)</div>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>菜色名稱</th><th class="r">售價</th><th class="r">總成本</th><th class="r">毛利率</th><th class="c">狀態</th><th>AI 建議摘要</th></tr></thead>
+          <tbody id="menu-rows">
+            <tr class="data-row" data-t="warn" onclick="openModal('crab')"><td>🦀 蟹粉小籠包（5個）</td><td class="r">NT$360</td><td class="r">NT$289</td><td class="r"><span class="r-red">19.4%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td><span class="ai-txt">⚠️ 減少蟹肉用量，售價調漲 5%…</span></td></tr>
+            <tr class="data-row" data-t="warn" onclick="openModal('shrimp')"><td>🍤 蝦仁燒賣（5個）</td><td class="r">NT$285</td><td class="r">NT$238</td><td class="r"><span class="r-red">16.5%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td><span class="ai-txt">⚠️ 微調蝦肉用量，降低採購成本…</span></td></tr>
+            <tr class="data-row" data-t="warn" onclick="openModal('rice')"><td>🍳 排骨蛋炒飯</td><td class="r">NT$405</td><td class="r">NT$353</td><td class="r"><span class="r-red">12.8%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td><span class="ai-txt">⚠️ 刪除高成本配菜，節省 6.5%…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('xlb')"><td>🥟 小籠包（10個）</td><td class="r">NT$405</td><td class="r">NT$130</td><td class="r"><span class="r-grn">67.9%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 維持定價，推薦搭配套餐…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('soup')"><td>🍲 元盅雞湯</td><td class="r">NT$405</td><td class="r">NT$85</td><td class="r"><span class="r-grn">79.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 提升食材品質，強化套餐搭配…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('taro')"><td>🟣 芋泥小籠包（5個）</td><td class="r">NT$195</td><td class="r">NT$17</td><td class="r"><span class="r-grn">91.3%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 毛利極佳，可作為招牌菜推廣…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('sour')"><td>🥣 酸辣湯</td><td class="r">NT$175</td><td class="r">NT$42</td><td class="r"><span class="r-grn">76.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td><span class="ai-txt">✅ 競爭力強，搭配主菜套餐…</span></td></tr>
+            <tr class="data-row" data-t="ok" onclick="openModal('wonton')"><td>🌶️ 蝦肉紅油抄手</td><td class="r">NT$315</td><td class="r">NT$212</td><td class="r"><span class="r-blu">32.3%</span></td><td class="c"><span class="badge bm">💙 偏低</span></td><td><span class="ai-txt">✅ 微調售價至 NT$322，毛利提升…</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: MENU MANAGEMENT -->
+    <div id="tab-menu" class="tab-content">
+      <div class="mm-hdr">
+        <div style="font-size:1.125rem;font-weight:800">菜單管理</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <div class="mm-search"><span>🔍</span><input placeholder="搜尋菜色名稱…"></div>
+          <button class="btn-s btn-so" onclick="showToast('success','📥 菜單範本下載中…')">📥 下載範本</button>
+          <button class="btn-s btn-so" onclick="showToast('info','請選擇 .xlsx 或 .csv 檔案（最大 10MB）')">📤 匯入 Excel</button>
+          <button class="btn-s btn-sp" onclick="showToast('success','+ 新增菜色表單已開啟')">+ 新增菜色</button>
+        </div>
+      </div>
+      <div class="cost-warn">🔔 食材成本每週會變動，建議每月更新一次。<strong>上次更新：14 天前</strong><button class="btn-s btn-so" style="margin-left:auto;font-size:.75rem" onclick="showToast('success','✅ 成本資料更新完成，共更新 8 項食材價格')">更新成本</button></div>
+      <div class="t-card">
+        <div class="t-hdr"><div class="t-title">所有菜色（8 道）</div></div>
+        <table>
+          <thead><tr><th>菜色名稱</th><th class="r">售價</th><th class="r">食材成本</th><th class="r">毛利率</th><th class="c">狀態</th><th class="c">操作</th></tr></thead>
+          <tbody>
+            <tr class="data-row" onclick="openModal('crab')"><td>🦀 蟹粉小籠包（5個）</td><td class="r">NT$360</td><td class="r">NT$289</td><td class="r"><span class="r-red">19.4%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('crab')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('shrimp')"><td>🍤 蝦仁燒賣（5個）</td><td class="r">NT$285</td><td class="r">NT$238</td><td class="r"><span class="r-red">16.5%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('shrimp')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('rice')"><td>🍳 排骨蛋炒飯</td><td class="r">NT$405</td><td class="r">NT$353</td><td class="r"><span class="r-red">12.8%</span></td><td class="c"><span class="badge bw">⚠️ 警示</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('rice')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('xlb')"><td>🥟 小籠包（10個）</td><td class="r">NT$405</td><td class="r">NT$130</td><td class="r"><span class="r-grn">67.9%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('xlb')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('soup')"><td>🍲 元盅雞湯</td><td class="r">NT$405</td><td class="r">NT$85</td><td class="r"><span class="r-grn">79.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('soup')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('taro')"><td>🟣 芋泥小籠包（5個）</td><td class="r">NT$195</td><td class="r">NT$17</td><td class="r"><span class="r-grn">91.3%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('taro')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('sour')"><td>🥣 酸辣湯</td><td class="r">NT$175</td><td class="r">NT$42</td><td class="r"><span class="r-grn">76.1%</span></td><td class="c"><span class="badge bo">✅ 健康</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('sour')">編輯食材</button></td></tr>
+            <tr class="data-row" onclick="openModal('wonton')"><td>🌶️ 蝦肉紅油抄手</td><td class="r">NT$315</td><td class="r">NT$212</td><td class="r"><span class="r-blu">32.3%</span></td><td class="c"><span class="badge bm">💙 偏低</span></td><td class="c"><button class="btn-s btn-so" style="font-size:.75rem" onclick="event.stopPropagation();openModal('wonton')">編輯食材</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: AI SUGGESTIONS -->
+    <div id="tab-suggestions" class="tab-content">
+      <div class="sg-hdr"><h2>AI 改善建議</h2><p>針對低於警戒線的品項，AI 已生成具體優化方向，點擊「已採納」記錄執行狀態</p></div>
+      <div class="sg-list">
+        <div class="sg-card" id="sg-crab">
+          <div class="sg-top">
+            <div><div class="sg-name">🦀 蟹粉小籠包（5個）</div><div class="sg-sub">毛利率 19.4% — 低於警戒線 5.6%</div></div>
+            <div class="sg-acts"><button class="btn-ign" onclick="ignoreSg('sg-crab')">忽略</button><button class="btn-ado" onclick="adoptSg('sg-crab','蟹粉小籠包')">✓ 已採納</button></div>
+          </div>
+          <div class="sg-body">⚠️ 減少蟹肉和粉末成本，建議將蟹肉用量從 15g 降至 12g；替換高成本配菜，選擇經濟性配料。售價調漲幅度 5%（NT$360→NT$379），毛利率預計提高至 25%。</div>
+          <div class="sg-meta"><span>📉 依據：成本佔售價 80.6%</span><span>💡 預計節省：NT$15/道</span><span>📅 今日 07:30</span></div>
+        </div>
+        <div class="sg-card" id="sg-shrimp">
+          <div class="sg-top">
+            <div><div class="sg-name">🍤 蝦仁燒賣（5個）</div><div class="sg-sub">毛利率 16.5% — 低於警戒線 8.5%</div></div>
+            <div class="sg-acts"><button class="btn-ign" onclick="ignoreSg('sg-shrimp')">忽略</button><button class="btn-ado" onclick="adoptSg('sg-shrimp','蝦仁燒賣')">✓ 已採納</button></div>
+          </div>
+          <div class="sg-body">⚠️ 微調蝦肉用量至 5.2 個，減少每份成本約 NT$18；替換高成本配菜，綜合成本降至 NT$209；售價調整至 NT$290，毛利率可提升至 28%。</div>
+          <div class="sg-meta"><span>📉 依據：成本佔售價 83.5%</span><span>💡 預計節省：NT$29/道</span><span>📅 今日 07:30</span></div>
+        </div>
+        <div class="sg-card" id="sg-rice">
+          <div class="sg-top">
+            <div><div class="sg-name">🍳 排骨蛋炒飯</div><div class="sg-sub">毛利率 12.8% — 低於警戒線 12.2%</div></div>
+            <div class="sg-acts"><button class="btn-ign" onclick="ignoreSg('sg-rice')">忽略</button><button class="btn-ado" onclick="adoptSg('sg-rice','排骨蛋炒飯')">✓ 已採納</button></div>
+          </div>
+          <div class="sg-body">⚠️ 調整雞蛋用量由 3 個下調至 2 個，節省 4.8% 成本；刪除高成本青肝配菜節省 6.5%；售價維持 NT$405 不變，預計毛利率從 12.8% 提升至 17%。</div>
+          <div class="sg-meta"><span>📉 依據：成本佔售價 87.2%</span><span>💡 預計節省：NT$52/道</span><span>📅 今日 07:30</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORY -->
+    <div id="tab-history" class="tab-content">
+      <div style="font-size:1.125rem;font-weight:800;margin-bottom:1.5rem">毛利率歷史趨勢</div>
+      <div class="h-grid">
+        <div class="h-card">
+          <div class="h-title">整體平均毛利率（近 6 個月）</div>
+          <div class="bar-chart">
+            <div class="bar-col"><div class="bar" style="height:60%;background:#cbd5e1" title="48.1%"></div><div class="bar-lbl">11月</div></div>
+            <div class="bar-col"><div class="bar" style="height:62%;background:#cbd5e1" title="49.6%"></div><div class="bar-lbl">12月</div></div>
+            <div class="bar-col"><div class="bar" style="height:58%;background:#94a3b8" title="46.4%"></div><div class="bar-lbl">1月</div></div>
+            <div class="bar-col"><div class="bar" style="height:65%;background:#94a3b8" title="52.0%"></div><div class="bar-lbl">2月</div></div>
+            <div class="bar-col"><div class="bar" style="height:70%;background:#fb923c" title="56.0%"></div><div class="bar-lbl">3月</div></div>
+            <div class="bar-col"><div class="bar" style="height:73%;background:#ea580c" title="58.4%"></div><div class="bar-lbl">4月</div></div>
+          </div>
+          <div class="h-note">↑ 整體毛利率持續改善 +3.2%（較去年同期）</div>
+        </div>
+        <div class="h-card">
+          <div class="h-title">各菜色毛利率分佈</div>
+          <div class="hb-list">
+            <div class="hb-row"><div class="hb-name">芋泥小籠包</div><div class="hb-track"><div class="hb-fill" style="width:91%;background:#10b981"></div></div><div class="hb-val" style="color:#10b981">91%</div></div>
+            <div class="hb-row"><div class="hb-name">元盅雞湯</div><div class="hb-track"><div class="hb-fill" style="width:79%;background:#10b981"></div></div><div class="hb-val" style="color:#10b981">79%</div></div>
+            <div class="hb-row"><div class="hb-name">酸辣湯</div><div class="hb-track"><div class="hb-fill" style="width:76%;background:#10b981"></div></div><div class="hb-val" style="color:#10b981">76%</div></div>
+            <div class="hb-row"><div class="hb-name">小籠包(10)</div><div class="hb-track"><div class="hb-fill" style="width:68%;background:#34d399"></div></div><div class="hb-val" style="color:#10b981">68%</div></div>
+            <div class="hb-row"><div class="hb-name">紅油抄手</div><div class="hb-track"><div class="hb-fill" style="width:32%;background:#3b82f6"></div></div><div class="hb-val" style="color:#3b82f6">32%</div></div>
+            <div class="hb-row"><div class="hb-name">蟹粉小籠包</div><div class="hb-track"><div class="hb-fill" style="width:19%;background:#ef4444"></div></div><div class="hb-val" style="color:#ef4444">19%</div></div>
+            <div class="hb-row"><div class="hb-name">蝦仁燒賣</div><div class="hb-track"><div class="hb-fill" style="width:16%;background:#ef4444"></div></div><div class="hb-val" style="color:#ef4444">16%</div></div>
+            <div class="hb-row"><div class="hb-name">排骨蛋炒飯</div><div class="hb-track"><div class="hb-fill" style="width:13%;background:#dc2626"></div></div><div class="hb-val" style="color:#ef4444">13%</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="trend-card">
+        <div class="trend-title">最近警示記錄</div>
+        <table>
+          <thead><tr><th>日期</th><th>菜色</th><th class="r">毛利率</th><th>AI 建議</th><th class="c">狀態</th></tr></thead>
+          <tbody>
+            <tr><td>今日 07:30</td><td>蟹粉小籠包</td><td class="r"><span class="r-red">19.4%</span></td><td><span class="ai-txt">⚠️ 減少蟹肉用量，漲價 5%</span></td><td class="c"><span class="badge bw">待處理</span></td></tr>
+            <tr><td>今日 07:30</td><td>蝦仁燒賣</td><td class="r"><span class="r-red">16.5%</span></td><td><span class="ai-txt">⚠️ 微調蝦肉用量</span></td><td class="c"><span class="badge bw">待處理</span></td></tr>
+            <tr><td>3天前</td><td>排骨蛋炒飯</td><td class="r"><span class="r-red">12.8%</span></td><td><span class="ai-txt">⚠️ 刪除高成本配菜</span></td><td class="c"><span class="badge" style="background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe">處理中</span></td></tr>
+            <tr><td>上週</td><td>紅油抄手</td><td class="r"><span class="r-blu">28.1%</span></td><td><span class="ai-txt">✅ 微調售價至 NT$322</span></td><td class="c"><span class="badge bo">已解決</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: BRANCHES -->
+    <div id="tab-branches" class="tab-content">
+      <div style="font-size:1.125rem;font-weight:800;margin-bottom:1.5rem">門市管理</div>
+      <div class="br-grid">
+        <div class="br-card main card-hover">
+          <div class="br-top"><div class="br-name">信義旗艦店</div><span class="br-tag m">主要門市</span></div>
+          <div class="br-meta">8 道菜 · 3 項警示 · 今日已掃描</div>
+          <div class="br-prog"><div class="prog-track"><div class="prog-fill brand" style="width:62%"></div></div><span class="prog-pct brand">62.5% 健康</span></div>
+        </div>
+        <div class="br-card card-hover">
+          <div class="br-top"><div class="br-name">大安門市</div><span class="br-tag g">狀況良好</span></div>
+          <div class="br-meta">12 道菜 · 1 項警示 · 今日已掃描</div>
+          <div class="br-prog"><div class="prog-track"><div class="prog-fill green" style="width:92%"></div></div><span class="prog-pct green">91.7% 健康</span></div>
+        </div>
+        <div class="br-card card-hover">
+          <div class="br-top"><div class="br-name">松山門市</div><span class="br-tag w">需要關注</span></div>
+          <div class="br-meta">10 道菜 · 4 項警示 · 今日已掃描</div>
+          <div class="br-prog"><div class="prog-track"><div class="prog-fill red" style="width:40%"></div></div><span class="prog-pct red" style="color:#ef4444">40.0% 健康</span></div>
+        </div>
+        <div class="br-card add card-hover" onclick="showToast('info','Growth 方案最多可新增 3 家門市，目前已使用 2 家，可再新增 1 家')">
+          <div class="add-plus">+</div>
+          <div style="font-size:.875rem;font-weight:600">新增門市</div>
+          <div style="font-size:.75rem;opacity:.7;margin-top:.25rem">Growth 方案可加至 3 家</div>
+        </div>
+      </div>
+      <div class="t-card">
+        <div class="t-hdr"><div class="t-title">用戶權限管理</div><button class="btn-s btn-sp" style="font-size:.75rem" onclick="showToast('info','邀請郵件已傳送，等待對方接受')">+ 邀請成員</button></div>
+        <table>
+          <thead><tr><th>用戶</th><th>角色</th><th>可存取門市</th><th>最後登入</th><th class="c">操作</th></tr></thead>
+          <tbody>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#92400e">王</div>王小明</div></td><td><span class="badge" style="background:#f3e8ff;color:#6b21a8;border:1px solid #e9d5ff">👑 老闆</span></td><td style="color:#94a3b8">全部門市</td><td style="color:#94a3b8">剛剛</td><td class="c">—</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#1e40af">陳</div>陳美華</div></td><td><span class="badge" style="background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe">📋 經理</span></td><td style="color:#94a3b8">信義店</td><td style="color:#94a3b8">2小時前</td><td class="c"><button style="font-size:.75rem;color:#ef4444;border:1px solid #fecaca;padding:.2rem .5rem;border-radius:.375rem" onclick="this.textContent=this.textContent==='停用'?'已停用':'停用';this.style.opacity=this.textContent==='已停用'?'0.4':'1';showToast('warn','⚠️ 成員權限已變更')">停用</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#ffedd5;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#c2410c">林</div>林主廚</div></td><td><span class="badge" style="background:#ffedd5;color:#c2410c;border:1px solid #fed7aa">🍳 廚房</span></td><td style="color:#94a3b8">信義店（唯讀）</td><td style="color:#94a3b8">昨天</td><td class="c"><button style="font-size:.75rem;color:#ef4444;border:1px solid #fecaca;padding:.2rem .5rem;border-radius:.375rem" onclick="this.textContent=this.textContent==='停用'?'已停用':'停用';this.style.opacity=this.textContent==='已停用'?'0.4':'1';showToast('warn','⚠️ 成員權限已變更')">停用</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:.5rem"><div style="width:1.75rem;height:1.75rem;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#166534">張</div>張採購</div></td><td><span class="badge" style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0">🛒 採購</span></td><td style="color:#94a3b8">全部門市（唯讀）</td><td style="color:#94a3b8">3天前</td><td class="c"><button style="font-size:.75rem;color:#ef4444;border:1px solid #fecaca;padding:.2rem .5rem;border-radius:.375rem" onclick="this.textContent=this.textContent==='停用'?'已停用':'停用';this.style.opacity=this.textContent==='已停用'?'0.4':'1';showToast('warn','⚠️ 成員權限已變更')">停用</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div id="tab-settings" class="tab-content">
+      <div style="font-size:1.125rem;font-weight:800;margin-bottom:1.5rem">系統設定</div>
+      <div class="st-grid">
+        <div class="st-card">
+          <div class="st-title">⚡ 掃描設定</div>
+          <div class="st-row"><span class="st-label">自動掃描時間</span><select><option>每天 07:30</option><option>每天 07:00</option><option>每天 08:00</option><option>每天 09:00</option></select></div>
+          <div class="st-row"><span class="st-label">毛利警戒線</span><div style="display:flex;align-items:center;gap:.375rem"><input type="number" value="25" style="width:3.5rem;text-align:center;border:1px solid var(--s200);border-radius:.375rem;padding:.3rem .5rem"><span style="color:var(--s400)">%</span></div></div>
+          <div class="st-row"><span class="st-label">AI 建議語言</span><select><option>繁體中文</option><option>簡體中文</option><option>English</option></select></div>
+          <div class="st-row"><span class="st-label">掃描失敗重試</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-title">🔔 通知設定</div>
+          <div class="st-row"><span class="st-label">LINE 推播通知</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+          <div class="st-row"><span class="st-label">Email 每日摘要</span><div class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+          <div class="st-row"><span class="st-label">成本更新提醒</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+          <div class="st-row"><span class="st-label">每週彙整報告</span><div class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-title">🔒 安全與資料</div>
+          <div class="st-row"><span class="st-label">隨時匯出全部資料</span><button class="btn-exp" onclick="showToast('success','📊 CSV 匯出中，稍後將自動下載')">匯出 CSV</button></div>
+          <div class="st-row"><span class="st-label">資料儲存地區</span><span class="st-muted">亞太（台灣）ap-northeast-1</span></div>
+          <div class="st-row"><span class="st-label">API 金鑰</span><button class="btn-exp" onclick="showToast('success','API 金鑰已複製到剪貼簿')">複製金鑰</button></div>
+          <div class="st-row"><span class="st-label">雙因素驗證</span><div class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
+        </div>
+        <div class="st-card">
+          <div class="st-title">💳 訂閱方案</div>
+          <div class="st-row"><span class="st-label">當前方案</span><span class="badge st-badge">Growth NT$3,999/月</span></div>
+          <div class="st-row"><span class="st-label">到期日</span><span style="color:var(--s600)">2026 年 06 月 03 日</span></div>
+          <div class="st-row"><span class="st-label">門市額度</span><span style="color:var(--s600)">2 / 3</span></div>
+          <div class="st-row"><span class="st-label">本月 AI 用量</span><span style="color:var(--green);font-weight:600">847 / 無限</span></div>
+          <button class="btn-cancel" onclick="if(confirm('確定要取消訂閱嗎？取消後將立即降級為免費方案，資料保留 30 天。')){showToast('warn','訂閱已取消，帳號將於本月底降級')}">取消訂閱（立即生效）</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL ══════════ -->
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="mb-hdr">
+      <div class="mb-title" id="m-title"></div>
+      <button class="mb-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="mb-body">
+      <div class="mb-stats">
+        <div><div class="mb-sl">售價</div><div class="mb-sv" id="m-price"></div></div>
+        <div><div class="mb-sl">總成本</div><div class="mb-sv" id="m-cost"></div></div>
+        <div><div class="mb-sl">毛利率</div><div class="mb-sv" id="m-margin"></div></div>
+      </div>
+      <div id="m-advice" class="mb-advice"></div>
+      <div class="mb-ingred">
+        <div class="mb-i-title">📋 食材成本明細</div>
+        <div id="m-ingred-list" class="ingred-list"></div>
+        <div id="m-total" class="mb-total"></div>
+      </div>
+    </div>
+    <div class="mb-foot">
+      <button class="btn-mg btn-mg-ghost" onclick="closeModal()">忽略此建議</button>
+      <button class="btn-mg btn-mg-p" onclick="adoptFromModal()">✓ 標記為已採納</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-icon"></span><span id="toast-msg"></span></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const DISHES = {
+  crab:   { title:'🦀 蟹粉小籠包（5個）', price:'NT$360', cost:'NT$289', margin:'19.4%', type:'warn',
+            advice:'⚠️ 減少蟹肉和粉末成本，建議將蟹肉用量從 15g 降至 12g；替換高成本配菜。售價調漲 5%（NT$360→NT$379），毛利率預計提高至 25%。',
+            ingreds:[['蟹肉（15g）','NT$175','high'],['麵皮（5張）','NT$19',''],['薑末','NT$7',''],['調味料','NT$13',''],['包裝','NT$11',''],['其他','NT$64','high']] },
+  shrimp: { title:'🍤 蝦仁燒賣（5個）', price:'NT$285', cost:'NT$238', margin:'16.5%', type:'warn',
+            advice:'⚠️ 微調蝦肉用量至 5.2 個，減少每份成本約 NT$18；替換高成本配菜，綜合成本降至 NT$209；售價調整至 NT$290，毛利率可提升至 28%。',
+            ingreds:[['蝦仁（5個）','NT$147','high'],['麵皮','NT$17',''],['蔥花','NT$6',''],['調味料','NT$12',''],['其他','NT$57','high']] },
+  rice:   { title:'🍳 排骨蛋炒飯', price:'NT$405', cost:'NT$353', margin:'12.8%', type:'warn',
+            advice:'⚠️ 調整雞蛋用量由 3 個下調至 2 個，節省 4.8% 成本；刪除高成本青肝配菜節省 6.5%；售價維持 NT$405 不變，毛利率從 12.8% 提升至 17%。',
+            ingreds:[['排骨（80g）','NT$161','high'],['白米飯','NT$18',''],['雞蛋（3個）','NT$41',''],['青肝配菜','NT$83','high'],['調味料','NT$16',''],['其他','NT$33','high']] },
+  xlb:    { title:'🥟 小籠包（10個）', price:'NT$405', cost:'NT$130', margin:'67.9%', type:'ok',
+            advice:'✅ 毛利率良好，維持競爭力定價。建議優化生產效率，目標毛利率提至 75%。推薦搭配套餐銷售（小籠包+湯品），提高客單價。',
+            ingreds:[['豬肉餡（50g）','NT$55',''],['麵皮（10張）','NT$30',''],['蔥薑汁','NT$10',''],['調味料','NT$17',''],['包裝','NT$18',''],['其他','NT$0','']] },
+  soup:   { title:'🍲 元盅雞湯', price:'NT$405', cost:'NT$85', margin:'79.1%', type:'ok',
+            advice:'✅ 毛利率優秀，建議維持售價 NT$405 不變。可通過提升雞肉品質進一步提高客戶滿意度。推薦搭配小菜套餐銷售，提高平均客單價至 NT$690+。',
+            ingreds:[['土雞（半隻）','NT$46',''],['枸杞紅棗','NT$15',''],['調味料','NT$13',''],['其他','NT$11',''],['','','']] },
+  taro:   { title:'🟣 芋泥小籠包（5個）', price:'NT$195', cost:'NT$17', margin:'91.3%', type:'ok',
+            advice:'✅ 毛利率極佳（91.3%），建議維持現有定價策略。可作為品牌招牌菜重點推廣，提升社群媒體曝光，帶動整體客流量增長。',
+            ingreds:[['芋泥餡（40g）','NT$8',''],['麵皮（5張）','NT$4',''],['調味料','NT$2',''],['包裝','NT$3',''],['','','']] },
+  sour:   { title:'🥣 酸辣湯', price:'NT$175', cost:'NT$42', margin:'76.1%', type:'ok',
+            advice:'✅ 競爭力強，建議維持當前定價。提高辣椒品質可提升口感滿意度。推薦與主菜搭配套餐銷售，提高整體客單價。',
+            ingreds:[['豆腐（80g）','NT$9',''],['木耳','NT$7',''],['雞蛋','NT$8',''],['辣椒油','NT$6',''],['其他調味','NT$12',''],['','','']] },
+  wonton: { title:'🌶️ 蝦肉紅油抄手', price:'NT$315', cost:'NT$212', margin:'32.3%', type:'ok',
+            advice:'✅ 毛利率偏低但在安全線以上。建議微調售價至 NT$322（+NT$7），預計毛利率提升至 34%。推薦搭配湯品套餐銷售以提高整體毛利。',
+            ingreds:[['蝦仁（30g）','NT$83',''],['餛飩皮（10張）','NT$18',''],['紅油辣醬','NT$37','high'],['蔥薑蒜','NT$16',''],['調味料','NT$28','high'],['其他','NT$30','high']] },
+};
+let currentDish = null;
+
+// ── SCREENS ───────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── ONBOARD ───────────────────────────────────────────────────
+let obStep = 1;
+function goOb(n){
+  document.getElementById('ob'+obStep).classList.remove('show');
+  document.getElementById('ob'+n).classList.add('show');
+  for(let i=1;i<=4;i++){
+    const d=document.getElementById('d'+i);
+    d.className='ob-dot '+(i<n?'done':i===n?'act':'idle');
+    d.textContent=i<n?'✓':i;
+  }
+  obStep=n;
+}
+function selPos(el){
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ── LINE 綁定驗證 ───────────────────────────────────────────────
+function doLineBind(){
+  const btn = document.getElementById('btn-bind-wx');
+  btn.disabled = true;
+  btn.textContent = '驗證中…';
+  btn.style.opacity = '0.7';
+  // 模擬向伺服器查詢綁定狀態（實際串接時替換為 fetch 請求）
+  setTimeout(()=>{
+    btn.textContent = '✓ 綁定成功';
+    btn.style.background = 'linear-gradient(135deg,#00B900,#009900)';
+    btn.style.opacity = '1';
+    document.getElementById('bind-result').classList.add('show');
+    showToast('success','✅ LINE 綁定成功！明日起每天 07:30 推播預警');
+    setTimeout(()=>{ goOb(4); }, 1800);
+  }, 2000);
+}
+
+// ── DASHBOARD TABS ────────────────────────────────────────────
+function swTab(tab, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('show'));
+  document.getElementById('tab-'+tab).classList.add('show');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('act'));
+  if(el) el.classList.add('act');
+  const titles={overview:'今日總覽',menu:'菜單管理',suggestions:'AI 改善建議',history:'歷史趨勢',branches:'門市管理',settings:'系統設定'};
+  document.getElementById('dh-title').textContent=titles[tab]||tab;
+  document.querySelector('.dash-main').scrollTop=0;
+}
+
+// ── FILTER ────────────────────────────────────────────────────
+function filterRows(type,btn){
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('act'));
+  btn.classList.add('act');
+  document.querySelectorAll('#menu-rows .data-row').forEach(r=>{
+    if(type==='all') r.style.display='';
+    else if(type==='warn') r.style.display=r.dataset.t==='warn'?'':'none';
+    else r.style.display=r.dataset.t!=='warn'?'':'none';
+  });
+}
+
+// ── SCAN ANIMATION ────────────────────────────────────────────
+function runScan(){
+  const btn=document.getElementById('scan-btn');
+  const bar=document.getElementById('scan-bar');
+  const fill=document.getElementById('scan-fill');
+  const pct=document.getElementById('scan-pct');
+  btn.disabled=true; btn.textContent='掃描中…';
+  bar.classList.add('show');
+  let p=0;
+  const iv=setInterval(()=>{
+    p+=Math.random()*18+4;
+    if(p>=100){p=100;clearInterval(iv);
+      setTimeout(()=>{
+        bar.classList.remove('show');
+        btn.disabled=false; btn.textContent='⚡ 立即掃描';
+        fill.style.width='0%'; pct.textContent='0%';
+        showToast('success','✅ 掃描完成！發現 3 道菜需要關注');
+      },600);
+    }
+    fill.style.width=p+'%'; pct.textContent=Math.floor(p)+'%';
+  },220);
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+function openModal(key){
+  const d=DISHES[key]; if(!d) return;
+  currentDish=key;
+  document.getElementById('m-title').textContent=d.title;
+  document.getElementById('m-price').textContent=d.price;
+  document.getElementById('m-cost').textContent=d.cost;
+  const me=document.getElementById('m-margin');
+  me.textContent=d.margin;
+  me.style.color=d.type==='warn'?'#dc2626':'#10b981';
+  const ae=document.getElementById('m-advice');
+  ae.textContent=d.advice;
+  ae.className='mb-advice '+(d.type==='warn'?'warn':'ok');
+  const il=document.getElementById('m-ingred-list');
+  il.innerHTML=d.ingreds.filter(i=>i[0]).map(i=>`<div class="ingred-row"><span class="ingred-name">${i[0]}</span><span class="ingred-cost${i[2]?' high':''}">${i[1]}</span></div>`).join('');
+  document.getElementById('m-total').innerHTML=`<span>食材總成本</span><span style="color:${d.type==='warn'?'#dc2626':'#1e293b'}">${d.cost}</span>`;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); currentDish=null; }
+function adoptFromModal(){
+  if(currentDish){
+    const d=DISHES[currentDish];
+    showToast('success','✅ 已採納「'+d.title.replace(/^[^\s]+ /,'')+'」的 AI 建議');
+  }
+  closeModal();
+}
+
+// ── AI SUGGESTION ACTIONS ─────────────────────────────────────
+function adoptSg(cardId, name){
+  const card=document.getElementById(cardId);
+  card.innerHTML=`<div class="sg-adopted"><span class="ck">✅</span><span><strong>${name}</strong> 的建議已採納，廚房主管已收到通知</span></div>`;
+  const cnt=document.getElementById('sg-cnt');
+  const c=parseInt(cnt.textContent)-1;
+  cnt.textContent=c;
+  if(c===0) cnt.style.display='none';
+  const wc=document.getElementById('warn-cnt');
+  if(wc) wc.textContent=Math.max(0,parseInt(wc.textContent)-1);
+  showToast('success','✅ 已採納「'+name+'」建議，記錄已更新');
+}
+function ignoreSg(cardId){
+  const card=document.getElementById(cardId);
+  card.style.opacity='0.4';
+  card.style.pointerEvents='none';
+  showToast('warn','已忽略此建議，下次掃描不再重複提示');
+}
+
+// ── EXPORT ────────────────────────────────────────────────────
+function exportReport(){ showToast('success','📄 報表已匯出，請查看下載資料夾'); }
+
+// ── TOAST ─────────────────────────────────────────────────────
+let toastTimer;
+function showToast(type, msg){
+  const t=document.getElementById('toast');
+  t.className='toast '+type+' show';
+  const icons={success:'✓',warn:'⚠️',info:'ℹ️'};
+  document.getElementById('toast-icon').textContent=icons[type]||'ℹ️';
+  document.getElementById('toast-msg').textContent=msg;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ t.classList.remove('show'); },3200);
+}
+
+// ── 落地頁錨點導航 ────────────────────────────────────────────
+function scrollToSection(id){
+  const el=document.getElementById(id);
+  if(el){ el.scrollIntoView({behavior:'smooth'}); }
+  else { showToast('info','正在捲動到'+id+'區域'); }
+}
+</script>
+</body>
+</html>
