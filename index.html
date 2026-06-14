@@ -445,9 +445,16 @@ tr.data-row.filtered{display:none;}
    響應式設計 — 手機（≤768px）
 ═══════════════════════════════════════════ */
 @media(max-width:768px){
-  /* 導覽列：隱藏連結，保留 CTA 按鈕 */
-  .l-nav{padding:.875rem 1.25rem;}
-  .nav-links span{display:none;}          /* 隱藏文字連結，保留「免費試用」按鈕 */
+  /* 導覽列：手機精簡 — logo + 語言 + 單一主 CTA，杜絕橫向溢出 */
+  .l-nav{padding:.7rem 1rem;gap:.4rem;}
+  .nav-links{gap:.45rem;flex-shrink:0;}
+  .nav-links span{display:none;}          /* 隱藏文字連結 */
+  #nav-login{display:none;}               /* 手機隱藏 LINE 登入，主流程走「免費試用」即可綁定 */
+  .logo-pre{display:none;}                /* 手機 logo 簡化為「🍽️ profitguard」省空間 */
+  .nav-lang-wrap{font-size:.85rem;gap:.15rem;}
+  .nav-lang{font-size:.72rem;padding:.22rem .25rem;max-width:5rem;}
+  .btn-cta{padding:.5rem .85rem;font-size:.8rem;}
+  .logo{font-size:1.08rem;}
   .hero{padding:5rem 1.25rem 3rem;}
   .hero h1{font-size:2rem;line-height:1.3;}
   .hero p{font-size:1rem;}
@@ -664,6 +671,34 @@ tr.data-row.filtered{display:none;}
   .ps-pill{padding:.35rem .7rem;font-size:.75rem}
   .ps-pill .pp-price{display:none}
 }
+
+/* ══════ 平板專屬（641–1024px）：善用寬度，不套用手機單欄 ══════ */
+@media(min-width:641px) and (max-width:1024px){
+  /* 功能 / 定價維持雙欄，版面更飽滿 */
+  .features{grid-template-columns:repeat(2,1fr) !important;padding:2.5rem 2rem !important;gap:1.25rem !important;}
+  .p-grid{grid-template-columns:repeat(2,1fr) !important;gap:1.25rem !important;}
+  .p-grid .p-card:last-child{grid-column:1/-1;}
+  /* 導覽列：平板空間夠，顯示完整 logo 與文字連結 */
+  .logo-pre{display:inline !important;}
+  .nav-links span{display:inline !important;}
+  .nav-links{gap:1.1rem !important;}
+  /* LINE 登入鈕維持手機隱藏（避免擠壓），主 CTA「免費試用」即可 */
+  .l-nav{padding:.875rem 1.5rem !important;}
+  /* Hero 文字稍大，平板閱讀更舒適 */
+  .hero h1{font-size:2.4rem !important;}
+  .hero-btns{flex-direction:row !important;justify-content:center;}
+  .hero-btns button,.hero-btns a{width:auto !important;}
+  /* 數據列三欄並排 */
+  .stats-inner{grid-template-columns:repeat(3,1fr) !important;text-align:center !important;}
+  /* Dashboard KPI 四欄（平板放得下） */
+  .kpi-grid{grid-template-columns:repeat(4,1fr) !important;}
+}
+
+/* ══════ 全域：手機觸控友善（按鈕最小 44px 高，符合人因） ══════ */
+@media(max-width:768px){
+  .btn-cta,.btn-hero-p,.btn-hero-o,.btn-main,.btn-p,.ob-next,.sb-item{min-height:44px;}
+  button,.sb-item,select{touch-action:manipulation;}
+}
 </style>
 </head>
 <body>
@@ -671,7 +706,7 @@ tr.data-row.filtered{display:none;}
 <!-- ══════════ SCREEN 1: LANDING ══════════ -->
 <div id="screen-landing" class="screen active">
   <nav class="l-nav">
-    <div class="logo" onclick="showScreen('screen-landing')" style="cursor:pointer">🍽️ Restaurant-<span class="accent">profitguard</span></div>
+    <div class="logo" onclick="showScreen('screen-landing')" style="cursor:pointer">🍽️ <span class="logo-pre">Restaurant-</span><span class="accent">profitguard</span></div>
     <div class="nav-links">
       <span onclick="scrollToSection('features')">功能</span><span onclick="scrollToSection('about')">關於我們</span><span onclick="scrollToSection('pricing')">定價</span>
       <label class="nav-lang-wrap" title="Language">🌐
