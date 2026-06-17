@@ -758,31 +758,34 @@ tr.data-row.filtered{display:none;}
   </div>
 
   <div class="pricing" id="pricing">
-    <h2>簡單定價，按品牌付費</h2>
-    <div class="pricing-sub">所有方案均含 14 天免費試用，無需綁定信用卡</div>
+    <h2>簡單定價，續訂越久越划算</h2>
+    <div class="pricing-sub">一般／中等方案享一個月免費試用，無需綁定信用卡</div>
     <div class="p-grid">
       <div class="p-card card-hover">
-        <div class="p-name">基礎版 Starter</div>
-        <div class="p-price">NT$899<sub>/月</sub></div>
-        <div class="p-meta">1 分店 · 100 道菜</div>
+        <div class="p-name">一般方案 Starter</div>
+        <div class="p-price">NT$599<sub>/月</sub></div>
+        <div class="p-meta">管理 1 家店</div>
         <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#FFF4E6;color:#C77700;font-size:.72rem;font-weight:600;margin-bottom:.5rem">食材成本掃描</div>
-        <ul class="p-list"><li>食材毛利每日自動掃描</li><li>LINE 即時預警推播</li><li>AI 改善建議（10次/月）</li><li>CSV 批量匯入食材清單</li><li>毛利警戒線自訂</li></ul>
+        <ul class="p-list"><li>管理一家店</li><li>LINE 即時預警推播</li><li>AI 改善建議 8 次/月</li><li>毛利警戒線制定</li></ul>
+        <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:.6rem;font-size:.74rem;color:#475569;line-height:1.6">🎁 一個月免費試用<br>續訂半年送 <b>2</b> 個月・一年送 <b>4</b> 個月（以此類推）</div>
         <button class="btn-p btn-p-o" onclick="showScreen('screen-onboard')">開始試用</button>
       </div>
       <div class="p-card hot card-hover">
         <div class="hot-tag">最受歡迎</div>
-        <div class="p-name">標準版 Growth</div>
-        <div class="p-price">NT$1,499<sub>/月</sub></div>
-        <div class="p-meta">3 分店 · 500 道菜</div>
+        <div class="p-name">中等方案 Growth</div>
+        <div class="p-price">NT$899<sub>/月</sub></div>
+        <div class="p-meta">管理 3 家店</div>
         <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#E0F2FE;color:#0369A1;font-size:.72rem;font-weight:600;margin-bottom:.5rem">✨ 真實全成本毛利率</div>
-        <ul class="p-list"><li>所有基礎版功能</li><li><b>固定成本分攤計算（房租／水電／人力）</b></li><li><b>真實全成本毛利率分析</b></li><li>歷史報表 &amp; 毛利趨勢圖</li><li>跨品牌彙整報告</li><li>AI 建議無限次・PDF 匯出</li></ul>
+        <ul class="p-list"><li>一般方案所有功能</li><li>管理三家店</li><li>AI 改善建議 12 次/月</li><li>POS 系統自動串接</li><li><b>真實全成本毛利率分析</b></li></ul>
+        <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#EFF6FF;border:1px dashed #93C5FD;border-radius:.6rem;font-size:.74rem;color:#1D4ED8;line-height:1.6">🎁 一個月免費試用<br>續訂半年送 <b>3</b> 個月・一年送 <b>6</b> 個月（以此類推）</div>
         <button class="btn-p btn-p-w" onclick="showScreen('screen-onboard')">開始試用</button>
       </div>
       <div class="p-card card-hover">
-        <div class="p-name">品牌版 Enterprise</div>
-        <div class="p-price" style="color:#94a3b8">訂製</div>
-        <div class="p-meta">無限分店 · 無限菜色</div>
-        <ul class="p-list"><li>所有標準版功能</li><li>多分店集中管理</li><li>POS 系統對接</li><li>REST API 串接</li><li>1 對 1 顧問服務</li><li>簽保密協議 (NDA)</li></ul>
+        <div class="p-name">企業方案 Enterprise</div>
+        <div class="p-price">NT$1,400<sub>起/月</sub></div>
+        <div class="p-meta">連鎖品牌・多店</div>
+        <ul class="p-list"><li>一對一顧問管理</li><li>AI 改善建議 無限量</li><li>中等方案所有功能</li><li>多分店集中管理</li><li>POS / REST API 串接・簽 NDA</li></ul>
+        <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:.6rem;font-size:.74rem;color:#475569;line-height:1.6">續訂一年 <b>95 折</b>（無免費試用期）</div>
         <button class="btn-p btn-p-g" onclick="showToast('info','我們的銷售團隊將在 24 小時內聯絡你！')">聯絡我們</button>
       </div>
     </div>
@@ -925,9 +928,9 @@ tr.data-row.filtered{display:none;}
     <div class="plan-switcher">
       <span class="ps-label">👁 體驗方案</span>
       <div class="ps-pills">
-        <div class="ps-pill" data-plan="starter" onclick="switchPlan('starter')">基礎版<span class="pp-price">NT$899</span></div>
-        <div class="ps-pill act" data-plan="growth" onclick="switchPlan('growth')">標準版<span class="pp-price">NT$1,499</span></div>
-        <div class="ps-pill" data-plan="enterprise" onclick="switchPlan('enterprise')">品牌版<span class="pp-price">訂製</span></div>
+        <div class="ps-pill" data-plan="starter" onclick="switchPlan('starter')">一般方案<span class="pp-price">NT$599</span></div>
+        <div class="ps-pill act" data-plan="growth" onclick="switchPlan('growth')">中等方案<span class="pp-price">NT$899</span></div>
+        <div class="ps-pill" data-plan="enterprise" onclick="switchPlan('enterprise')">企業方案<span class="pp-price">NT$1,400起</span></div>
       </div>
       <span class="ps-hint">切換方案即時體驗不同介面 →</span>
     </div>
@@ -962,7 +965,7 @@ tr.data-row.filtered{display:none;}
       <div class="fullcost-card" data-requires="growth">
         <div class="fc-hdr">
           <div class="fc-title">🏢 真實全成本毛利率分析</div>
-          <span class="fc-tag">標準版獨家</span>
+          <span class="fc-tag">中等方案獨家</span>
         </div>
         <!-- 第一列：核心輸入項（食材自動匯入放第一個） -->
         <div class="fc-grid">
@@ -1234,7 +1237,7 @@ tr.data-row.filtered{display:none;}
         </div>
         <div class="st-card">
           <div class="st-title">💳 訂閱方案</div>
-          <div class="st-row"><span class="st-label">當前方案</span><span class="badge st-badge">標準版 Growth NT$1,499/月</span></div>
+          <div class="st-row"><span class="st-label">當前方案</span><span class="badge st-badge">中等方案 Growth NT$899/月</span></div>
           <div class="st-row"><span class="st-label">到期日</span><span style="color:var(--s600)">2026 年 06 月 03 日</span></div>
           <div class="st-row"><span class="st-label">門市額度</span><span style="color:var(--s600)">2 / 3</span></div>
           <div class="st-row"><span class="st-label">本月 AI 用量</span><span style="color:var(--green);font-weight:600">847 / 無限</span></div>
@@ -1255,7 +1258,7 @@ tr.data-row.filtered{display:none;}
           </div>
           <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">毛利率是怎麼算的？<span class="faq-arw">▾</span></div>
-            <div class="faq-a"><div class="faq-a-in">食材毛利率 =（售價 − 食材成本）÷ 售價。標準版另計「全成本毛利率」，會再扣除房租、水電、人力分攤，反映真實獲利。</div></div>
+            <div class="faq-a"><div class="faq-a-in">食材毛利率 =（售價 − 食材成本）÷ 售價。中等方案另計「全成本毛利率」，會再扣除房租、水電、人力分攤，反映真實獲利。</div></div>
           </div>
           <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">LINE 推播沒收到怎麼辦？<span class="faq-arw">▾</span></div>
@@ -1263,7 +1266,7 @@ tr.data-row.filtered{display:none;}
           </div>
           <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">可以管理多家門市嗎？<span class="faq-arw">▾</span></div>
-            <div class="faq-a"><div class="faq-a-in">標準版最多管理 3 家門市，品牌版無上限並支援集中管理與權限分級，可在「門市管理」新增。</div></div>
+            <div class="faq-a"><div class="faq-a-in">中等方案最多管理 3 家門市，企業方案無上限並支援集中管理與權限分級，可在「門市管理」新增。</div></div>
           </div>
           <div class="faq-item">
             <div class="faq-q" onclick="toggleFaq(this)">我的資料安全嗎？<span class="faq-arw">▾</span></div>
@@ -1645,7 +1648,7 @@ function exportReport(){
   const rows = [
     ['餐廳利潤小幫手 - 毛利報表'],
     [`匯出日期：${today}`],
-    [`方案：${PLAN_NAME[currentPlan]||'標準版'}`],
+    [`方案：${PLAN_NAME[currentPlan]||'中等方案'}`],
     [''],
     ['== 菜單毛利明細 =='],
     ['菜色名稱','售價','總成本','毛利率','狀態','AI 建議摘要'],
@@ -1702,7 +1705,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
 // ── 方案切換器 ────────────────────────────────────────────────
 const PLAN_RANK = { starter:1, growth:2, enterprise:3 };
-const PLAN_NAME = { starter:'基礎版 NT$899', growth:'標準版 NT$1,499', enterprise:'品牌版 訂製' };
+const PLAN_NAME = { starter:'一般方案 NT$599', growth:'中等方案 NT$899', enterprise:'企業方案 NT$1,400起' };
 let currentPlan = 'growth';
 
 function switchPlan(plan){
@@ -2034,9 +2037,9 @@ function scrollToSection(id){
     ['🤖 AI 補充建議：排骨蛋炒飯為帶客主力，不宜大漲價；可改推「加 NT$30 升級套餐（附湯品）」提高客單，套餐毛利可拉高至 22%，比單漲售價更不影響翻桌。','🤖 AI bonus tip: this dish drives traffic — avoid big price hikes; offer a "+NT$30 combo upgrade (with soup)" to raise ticket size. Combo margin can reach 22% with less impact on turnover than a straight price increase.'],
     ['✅ 採納 AI 建議後，本期需改善菜色減少 1 道、平均毛利率提升 4.9 個百分點，預估月省成本近翻倍。','✅ After adopting AI advice: dishes needing fixes down by 1, average margin up 4.9 points, and estimated monthly savings nearly doubled.'],
     ['系統每日清晨自動串接農業部大盤行情更新批發價；你也可在「歷史趨勢 → 大盤食材行情」手動重新整理。建議每月至少核對一次自家供應商實際進貨價。','The system auto-syncs wholesale prices from the Ministry of Agriculture market data every morning; you can also refresh manually under History → Market Prices. We recommend verifying your own supplier prices monthly.'],
-    ['食材毛利率 =（售價 − 食材成本）÷ 售價。標準版另計「全成本毛利率」，會再扣除房租、水電、人力分攤，反映真實獲利。','Ingredient margin = (price − ingredient cost) ÷ price. The Growth plan also computes full-cost margin, deducting rent, utilities and labor allocation to reflect true profit.'],
+    ['食材毛利率 =（售價 − 食材成本）÷ 售價。中等方案另計「全成本毛利率」，會再扣除房租、水電、人力分攤，反映真實獲利。','Ingredient margin = (price − ingredient cost) ÷ price. The Growth plan also computes full-cost margin, deducting rent, utilities and labor allocation to reflect true profit.'],
     ['請確認已完成綁定（傳「綁定」給官方帳號）且未封鎖帳號。系統每日 07:30 推播，可於系統設定調整時間。','Make sure you have completed binding (send "Bind" to the official account) and have not blocked it. Pushes go out daily at 07:30 — adjust the time in Settings.'],
-    ['標準版最多管理 3 家門市，品牌版無上限並支援集中管理與權限分級，可在「門市管理」新增。','Growth manages up to 3 stores; Enterprise is unlimited with centralized management and role-based access. Add stores under Branches.'],
+    ['中等方案最多管理 3 家門市，企業方案無上限並支援集中管理與權限分級，可在「門市管理」新增。','Growth manages up to 3 stores; Enterprise is unlimited with centralized management and role-based access. Add stores under Branches.'],
     ['資料儲存於亞太（台灣）區域，傳輸全程 HTTPS 加密；可隨時於系統設定一鍵匯出全部資料。','Data is stored in the Asia-Pacific (Taiwan) region with HTTPS encryption in transit; you can export all your data anytime from Settings.'],
     ['正在從農業部開放資料載入即時批發行情…','Loading live wholesale prices from Ministry of Agriculture open data…'],
     ['↑ 近 6 個月整體毛利率持續改善 +3.2%（較去年同期）','↑ Overall margin improving for 6 months, +3.2% YoY'],
@@ -2095,36 +2098,34 @@ function scrollToSection(id){
     ['免費試用，隨時取消','Free trial, cancel anytime'],
     ['免費試用 14 天','Free 14-Day Trial'],
     ['綁定','Bind'],
-    ['簡單定價，按品牌付費','Simple Pricing, Pay Per Brand'],
-    ['基礎版 Starter','Starter'],
+    ['簡單定價，續訂越久越划算','Simple pricing — the longer you renew, the more you save'],
+    ['一般／中等方案享一個月免費試用，無需綁定信用卡','Starter & Growth include a 1-month free trial, no credit card required'],
+    ['一般方案 Starter','Starter'],
     ['/月','/mo'],
-    ['1 分店 · 100 道菜','1 store · 100 dishes'],
+    ['起/月','from/mo'],
+    ['管理 1 家店','Manage 1 store'],
     ['食材成本掃描','Ingredient cost scan'],
-    ['食材毛利每日自動掃描','Daily automatic ingredient-margin scan'],
+    ['管理一家店','Manage one store'],
     ['LINE 即時預警推播','Real-time LINE alert push'],
-    ['AI 改善建議（10次/月）','AI improvement advice (10/mo)'],
-    ['CSV 批量匯入食材清單','Bulk CSV ingredient import'],
-    ['毛利警戒線自訂','Custom margin warning line'],
+    ['AI 改善建議 8 次/月','AI improvement advice (8/mo)'],
+    ['毛利警戒線制定','Set margin warning line'],
     ['開始試用','Start Trial'],
     ['最受歡迎','Most Popular'],
-    ['標準版 Growth','Growth'],
-    ['3 分店 · 500 道菜','3 stores · 500 dishes'],
+    ['中等方案 Growth','Growth'],
+    ['管理 3 家店','Manage 3 stores'],
     ['✨ 真實全成本毛利率','✨ True full-cost margin'],
-    ['所有基礎版功能','All Starter features'],
-    ['固定成本分攤計算（房租／水電／人力）','Fixed-cost allocation (rent / utilities / labor)'],
+    ['一般方案所有功能','All Starter features'],
+    ['管理三家店','Manage three stores'],
+    ['AI 改善建議 12 次/月','AI improvement advice (12/mo)'],
+    ['POS 系統自動串接','Automatic POS integration'],
     ['真實全成本毛利率分析','True Full-Cost Margin Analysis'],
-    ['歷史報表 & 毛利趨勢圖','Historical reports & margin trend charts'],
-    ['跨品牌彙整報告','Cross-brand summary reports'],
-    ['AI 建議無限次・PDF 匯出','Unlimited AI advice · PDF export'],
-    ['品牌版 Enterprise','Enterprise'],
-    ['訂製','Custom'],
-    ['無限分店 · 無限菜色','Unlimited stores · unlimited dishes'],
-    ['所有標準版功能','All Growth features'],
+    ['企業方案 Enterprise','Enterprise'],
+    ['連鎖品牌・多店','Chains · multi-store'],
+    ['一對一顧問管理','1-on-1 consultant management'],
+    ['AI 改善建議 無限量','AI improvement advice (unlimited)'],
+    ['中等方案所有功能','All Growth features'],
     ['多分店集中管理','Centralized multi-store management'],
-    ['POS 系統對接','POS system integration'],
-    ['REST API 串接','REST API integration'],
-    ['1 對 1 顧問服務','1-on-1 consulting'],
-    ['簽保密協議 (NDA)','NDA signing'],
+    ['POS / REST API 串接・簽 NDA','POS / REST API integration · NDA'],
     ['關於我們','About Us'],
     ['聯絡我們','Contact Us'],
     ['← 返回','← Back'],
@@ -2188,9 +2189,9 @@ function scrollToSection(id){
     ['王小明','Wang Xiaoming'],
     ['老闆','Owner'],
     ['👁 體驗方案','👁 Try plans'],
-    ['基礎版','Starter'],
-    ['標準版','Growth'],
-    ['品牌版','Enterprise'],
+    ['一般方案','Starter'],
+    ['中等方案','Growth'],
+    ['企業方案','Enterprise'],
     ['切換方案即時體驗不同介面 →','Switch plans to instantly preview different interfaces →'],
     ['最後掃描：今日 07:30 ·','Last scan: today 07:30 ·'],
     ['● 營運中','● Operating'],
@@ -2206,7 +2207,7 @@ function scrollToSection(id){
     ['💰 本月淨利','💰 Net Profit This Month'],
     ['營收 − 總成本','Revenue − Total Cost'],
     ['🏢 真實全成本毛利率分析','🏢 True Full-Cost Margin Analysis'],
-    ['標準版獨家','Growth exclusive'],
+    ['中等方案獨家','Growth exclusive'],
     ['🔗 自動','🔗 Auto'],
     ['食材成本','Ingredient Cost'],
     ['從菜單同步','Synced from menu'],
@@ -2370,7 +2371,7 @@ function scrollToSection(id){
     ['雙因素驗證','Two-Factor Authentication'],
     ['💳 訂閱方案','💳 Subscription Plan'],
     ['當前方案','Current plan'],
-    ['標準版 Growth NT$1,499/月','Growth NT$1,499/mo'],
+    ['中等方案 Growth NT$899/月','Growth NT$899/mo'],
     ['到期日','Expiry date'],
     ['2026 年 06 月 03 日','June 3, 2026'],
     ['門市額度','Store quota'],
