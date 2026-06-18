@@ -206,6 +206,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none;}
 .sb-logo .logo .accent{display:inline;}
 .sb-logo .sub{font-size:.6875rem;color:var(--s400);margin-top:.4rem;}
 .sb-nav{padding:0 .625rem;flex:1;}
+.m-tabsel{display:none;}  /* 手機專用下拉選單，桌面/平板隱藏 */
 .sb-item{display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;border-radius:.625rem;font-size:.875rem;color:var(--s500);cursor:pointer;transition:all .18s;margin-bottom:.125rem;position:relative;}
 .sb-item:hover,.sb-item.act{background:rgba(234,88,12,.09);color:var(--brand);}
 .sb-item.act{font-weight:600;}
@@ -481,23 +482,28 @@ tr.data-row.filtered{display:none;}
 
   /* Dashboard 佈局（!important 覆蓋 #screen-dashboard.active 的 row） */
   #screen-dashboard.active{flex-direction:column !important;}
+  /* 手機 dashboard 側欄：直向，logo 置中 + 下拉選單（取代橫向滑動） */
   .sidebar{
     width:100%;height:auto;min-height:unset;
-    flex-direction:row;align-items:center;
-    padding:.625rem 1rem;flex-wrap:nowrap;
-    overflow-x:auto;gap:.25rem;
+    flex-direction:column;align-items:stretch;
+    padding:.6rem .9rem;gap:.5rem;overflow:visible;
     position:sticky;top:0;z-index:50;
     box-shadow:0 2px 8px rgba(0,0,0,.08);
   }
-  .sb-logo{flex-shrink:0;margin-bottom:0;margin-right:.75rem;}
-  .sb-logo .sub{display:none;}
-  .sb-nav{display:flex;flex-direction:row;flex:unset;padding:0;}
-  .sb-item{
-    flex-shrink:0;padding:.5rem .75rem;
-    border-radius:.5rem;white-space:nowrap;
-    margin-bottom:0;font-size:.8125rem;
-  }
+  .sb-logo{flex-shrink:0;margin:0;text-align:center;}
+  .sb-logo .logo{justify-content:center;font-size:1.05rem !important;}
+  .sb-logo .sub{display:block;text-align:center;font-size:.7rem;}
+  .sb-nav{display:none;}              /* 隱藏橫向 tabs */
   .sb-user{display:none;}
+  .m-tabsel{
+    display:block;width:100%;
+    padding:.6rem .9rem;border:1px solid var(--s200,#e2e8f0);
+    border-radius:.6rem;background:#fff;
+    font-size:.95rem;font-weight:600;color:var(--s700,#334155);
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%2364748b' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right .9rem center;
+  }
   .dash-main{padding:0;}
   /* Dashboard 標頭 */
   .dash-hdr{padding:.875rem 1rem;flex-wrap:wrap;gap:.5rem;}
@@ -917,6 +923,16 @@ tr.data-row.filtered{display:none;}
       <div class="sb-item" onclick="swTab('settings',this)"><span>⚙️</span>系統設定</div>
       <div class="sb-item" onclick="swTab('help',this)"><span>❓</span>常見問題</div>
     </nav>
+    <!-- 手機專用：下拉選單切換分頁（取代橫向滑動，更直覺） -->
+    <select class="m-tabsel" id="m-tabsel" onchange="mTab(this.value)" aria-label="切換頁面">
+      <option value="overview">📊 總覽</option>
+      <option value="menu">🍽️ 菜單管理</option>
+      <option value="suggestions">🤖 AI 建議</option>
+      <option value="history">📈 歷史趨勢</option>
+      <option value="branches">🏪 門市管理</option>
+      <option value="settings">⚙️ 系統設定</option>
+      <option value="help">❓ 常見問題</option>
+    </select>
     <div class="sb-user">
       <div class="u-av">王</div>
       <div><div class="u-name">王小明</div><div class="u-role">老闆</div></div>
@@ -1852,7 +1868,14 @@ function swTab(tab, el){
   const titles={overview:'今日總覽',menu:'菜單管理',suggestions:'AI 改善建議',history:'歷史趨勢',branches:'門市管理',settings:'系統設定',help:'常見問題'};
   document.getElementById('dh-title').textContent=titles[tab]||tab;
   document.querySelector('.dash-main').scrollTop=0;
+  // 手機下拉選單反向同步
+  const sel=document.getElementById('m-tabsel'); if(sel&&sel.value!==tab) sel.value=tab;
   if(tab==='history'){ ensureTrendChart(); loadMarket(); }
+}
+// 手機下拉選單切換分頁：找到對應 sb-item 一併同步桌面高亮
+function mTab(tab){
+  const item=[...document.querySelectorAll('.sb-item')].find(i=>i.getAttribute('onclick')&&i.getAttribute('onclick').includes("'"+tab+"'"));
+  swTab(tab, item||null);
 }
 
 // ══════════ 新功能 JS：折線圖 / 大盤行情 / FAQ / 回饋 ══════════
