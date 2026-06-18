@@ -16,6 +16,8 @@
 .seg-btn{padding:.32rem .85rem;border-radius:.375rem;font-size:.8rem;font-weight:700;color:#64748b;transition:all .15s}
 .seg-btn.act{background:#fff;color:#ea580c;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.6rem}
+.mkt-cat{margin-bottom:1rem}
+.mkt-cat-h{font-size:.85rem;font-weight:800;color:#475569;margin-bottom:.5rem;padding-bottom:.3rem;border-bottom:2px solid #f1f5f9}
 .mkt-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:.6rem;padding:.6rem .75rem}
 .mkt-name{font-weight:700;font-size:.9rem;color:#1e293b}
 .mkt-price{font-size:1.05rem;font-weight:800;color:#ea580c;margin-top:.15rem}
@@ -1906,10 +1908,18 @@ function loadMarket(){
   fetch(BACKEND_URL+'/api/market',{signal:AbortSignal.timeout(25000)}).then(function(r){return r.json()}).then(function(j){
     if(!j.ok)throw new Error(j.error||'fail');
     if(st){st.className='dot-on';st.textContent='● 已連線';}
-    var h='<div class="mkt-grid">';
-    var CAT_ICON={'蔬菜':'🥬','海鮮':'🦐','肉品':'🥩','蛋品':'🥚'};
-    j.items.forEach(function(it){var u=(it.unit||'元/公斤').replace('元','');var ic=CAT_ICON[it.cat]||'';var nt=it.note?'<div class="mkt-meta" style="color:#f59e0b">'+it.note+'</div>':'';h+='<div class="mkt-item"><div class="mkt-name">'+(ic?ic+' ':'')+it.name+'</div><div class="mkt-price">NT$'+it.avg+'<span style="font-size:.7rem;color:#94a3b8"> '+u+'</span></div><div class="mkt-meta">'+it.market+'　'+it.date+'</div>'+nt+'</div>';});
-    h+='</div>'; if(body)body.innerHTML=h;
+    var CAT_ICON={'蔬果':'🥬','蔬菜':'🥬','海鮮':'🦐','肉品':'🥩','蛋品':'🥚'};
+    var CAT_ORDER=['肉品','海鮮','蔬果','蛋品'];
+    var groups={}; j.items.forEach(function(it){(groups[it.cat]=groups[it.cat]||[]).push(it);});
+    var h='';
+    CAT_ORDER.forEach(function(cat){
+      var arr=groups[cat]; if(!arr||!arr.length)return;
+      h+='<div class="mkt-cat"><div class="mkt-cat-h">'+(CAT_ICON[cat]||'')+' '+cat+'</div><div class="mkt-grid">';
+      arr.forEach(function(it){var u=(it.unit||'元/公斤').replace('元','');var nt=it.note?'<div class="mkt-meta" style="color:#f59e0b">'+it.note+'</div>':'';h+='<div class="mkt-item"><div class="mkt-name">'+it.name+'</div><div class="mkt-price">NT$'+it.avg+'<span style="font-size:.7rem;color:#94a3b8"> '+u+'</span></div><div class="mkt-meta">'+it.market+'　'+it.date+'</div>'+nt+'</div>';});
+      h+='</div></div>';
+    });
+    h+='<div class="mkt-meta" style="margin-top:.7rem;color:#94a3b8">※ 米、麵粉屬糧食／加工品，不在農業部每日批發行情範圍</div>';
+    if(body)body.innerHTML=h;
     if(up)up.textContent='✅ 串接成功・來源：'+j.source+'　最後更新：'+new Date(j.updated).toLocaleString('zh-TW');
   }).catch(function(e){
     if(st){st.className='dot-off';st.textContent='● 連線失敗';}
