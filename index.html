@@ -492,7 +492,7 @@ tr.data-row.filtered{display:none;}
   }
   .sb-logo{flex-shrink:0;margin:0;text-align:center;}
   .sb-logo .logo{justify-content:center;font-size:1.05rem !important;}
-  .sb-logo .sub{display:block;text-align:center;font-size:.7rem;}
+  .sb-logo .sub{display:none;}        /* 手機隱藏「鼎泰豐·信義旗艦店」示範店名 */
   .sb-nav{display:none;}              /* 隱藏橫向 tabs */
   .sb-user{display:none;}
   .m-tabsel{
@@ -505,6 +505,9 @@ tr.data-row.filtered{display:none;}
     background-repeat:no-repeat;background-position:right .9rem center;
   }
   .dash-main{padding:0;}
+  /* 警示記錄等寬表格：在卡片內橫向捲動，不帶動整頁 */
+  .trend-card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .trend-card table{min-width:540px;}
   /* Dashboard 標頭 */
   .dash-hdr{padding:.875rem 1rem;flex-wrap:wrap;gap:.5rem;}
   .dh-title{font-size:1rem;}
