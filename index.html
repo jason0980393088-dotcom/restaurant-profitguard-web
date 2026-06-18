@@ -857,7 +857,7 @@ tr.data-row.filtered{display:none;}
       </div>
       <input type="file" id="file-input" accept=".xlsx,.csv" style="display:none" onchange="if(this.files.length){showToast('success','📥 已選取：'+this.files[0].name+'，正在解析…');this.value='';goOb(3);}">
       <div class="sep-text">— 或 —</div>
-      <button class="btn-2nd" onclick="showToast('success','📥 菜單範本下載中…')">📥 下載菜單範本（Excel）</button>
+      <button class="btn-2nd" onclick="downloadMenuTemplate()">📥 下載菜單範本（Excel）</button>
       <button class="btn-main" onclick="goOb(3)">使用範例資料繼續 →</button>
     </div>
 
@@ -1057,9 +1057,10 @@ tr.data-row.filtered{display:none;}
         <div style="font-size:1.125rem;font-weight:800">菜單管理</div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           <div class="mm-search"><span>🔍</span><input placeholder="搜尋菜色名稱…"></div>
-          <button class="btn-s btn-so" onclick="showToast('success','📥 菜單範本下載中…')">📥 下載範本</button>
-          <button class="btn-s btn-so" onclick="showToast('info','請選擇 .xlsx 或 .csv 檔案（最大 10MB）')">📤 匯入 Excel</button>
-          <button class="btn-s btn-sp" onclick="showToast('success','+ 新增菜色表單已開啟')">+ 新增菜色</button>
+          <button class="btn-s btn-so" onclick="downloadMenuTemplate()">📥 下載範本</button>
+          <button class="btn-s btn-so" onclick="document.getElementById('menu-file').click()">📤 匯入 Excel/CSV</button>
+          <input type="file" id="menu-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importMenuFromFile(event)">
+          <button class="btn-s btn-sp" onclick="addDish()">+ 新增菜色</button>
         </div>
       </div>
       <div class="cost-warn">🔔 食材成本每週會變動，建議每月更新一次。<strong>上次更新：14 天前</strong><button class="btn-s btn-so" style="margin-left:auto;font-size:.75rem" onclick="showToast('success','✅ 成本資料更新完成，共更新 8 項食材價格')">更新成本</button></div>
@@ -2604,6 +2605,58 @@ function enableMenuEditing(){
   document.querySelectorAll('button, .btn-s, .btn-2nd').forEach(function(b){
     if (b.textContent.indexOf('新增菜色') !== -1){ b.onclick = function(){ addDish(); }; }
   });
+}
+// ── 真實：下載菜單範本 CSV（Excel 直接開）──
+function downloadMenuTemplate(){
+  var BOM = '﻿';   // Excel 中文相容
+  var rows = [
+    ['菜色名稱','售價','進貨成本'],
+    ['滷肉飯','80','35'],
+    ['排骨便當','100','55'],
+    ['貢丸湯','30','10'],
+  ];
+  var csv = BOM + rows.map(function(r){return r.join(',');}).join('\r\n');
+  var blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '菜單範本_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  if(window.showToast) showToast('success','📥 菜單範本已下載（用 Excel 開啟編輯後再匯入）');
+}
+// ── 真實：從 CSV/Excel 匯入菜單 ──
+function importMenuFromFile(ev){
+  var file = ev.target.files[0]; if(!file) return;
+  // .xlsx 暫不解析（需額外函式庫），請使用者另存 CSV 上傳
+  if(/\.xlsx?$/i.test(file.name)){
+    if(window.showToast) showToast('warn','請先在 Excel 另存為 CSV (UTF-8) 再匯入');
+    ev.target.value=''; return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var text = e.target.result.replace(/^﻿/,'');   // 去 BOM
+      var lines = text.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
+      var items = []; var skipped = 0;
+      lines.forEach(function(line, idx){
+        var cols = line.split(',').map(function(s){return s.trim().replace(/^"|"$/g,'');});
+        // 第一行若是標題（含「售價」等字）跳過
+        if(idx===0 && cols.some(function(c){return /售價|成本|名稱/.test(c);})) return;
+        var name = cols[0], price = Number(cols[1]), cost = Number(cols[2]);
+        if(name && price>0 && !isNaN(cost) && cost>=0){
+          items.push({ name:name, price:price, cost:cost, margin:+(((price-cost)/price)*100).toFixed(1) });
+        } else { skipped++; }
+      });
+      if(!items.length){ if(window.showToast) showToast('error','沒有有效資料行，請檢查 CSV 格式'); return; }
+      // 詢問是否覆蓋
+      var doReplace = !MY_MENU || !MY_MENU.length || confirm('已匯入 '+items.length+' 道菜。\n按「確定」取代現有菜單，按「取消」新增到現有菜單之後。');
+      MY_MENU = doReplace ? items : (MY_MENU||[]).concat(items);
+      saveMyMenu('✅ 已匯入 '+items.length+' 道菜'+(skipped?'（跳過 '+skipped+' 行）':''));
+    }catch(err){
+      if(window.showToast) showToast('error','匯入失敗：'+err.message);
+    }
+    ev.target.value=''; // 重置 input 讓相同檔案可再次選
+  };
+  reader.readAsText(file, 'utf-8');
 }
 function addDish(){
   var name = prompt('菜色名稱？（例：滷肉飯）'); if (!name) return;
