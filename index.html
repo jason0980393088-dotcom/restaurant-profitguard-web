@@ -1242,6 +1242,120 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important;}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   UI/UX 總檢查 15 修（patch v2）
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* #1 Nav 直書修復：強制不換行 + 彈性寬度 */
+.l-nav{max-width:none!important;white-space:nowrap!important;flex-wrap:nowrap!important;}
+.l-nav .nav-links{white-space:nowrap!important;flex-wrap:nowrap!important;}
+.l-nav .nav-links span,.l-nav .nav-lang-wrap,.l-nav .btn-cta,.l-nav .logo{white-space:nowrap!important;}
+.l-nav .logo{overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+@media(max-width:860px){
+  .l-nav .logo .logo-pre{display:none!important;}
+  .l-nav{gap:.75rem!important;}
+  .l-nav .nav-links{gap:1rem!important;font-size:.78rem!important;}
+}
+@media(max-width:620px){
+  .l-nav .nav-links{display:none!important;}
+}
+
+/* #3 hb-fill 顏色強制走 palette（蓋過內嵌 style） */
+.hb-fill[style*="#10b981"],.hb-fill[style*="#34d399"]{background:var(--green)!important;}
+.hb-fill[style*="#ef4444"],.hb-fill[style*="#dc2626"]{background:var(--brand)!important;}
+.hb-fill[style*="#3b82f6"]{background:var(--blue)!important;}
+.hb-val[style*="#10b981"]{color:var(--green)!important;}
+.hb-val[style*="#ef4444"],.hb-val[style*="#dc2626"]{color:var(--brand)!important;}
+.hb-val[style*="#3b82f6"]{color:var(--blue)!important;}
+
+/* #4 全成本 KPI mini-cards 徹底蓋掉粉彩漸層 */
+.fc-cell{background:var(--s50)!important;border:1px solid var(--s300)!important;border-radius:.625rem!important;box-shadow:none!important;transition:all .25s;}
+.fc-cell[style]{background:var(--s50)!important;border-color:var(--s300)!important;}
+.fc-cell:hover{border-color:var(--s500)!important;transform:translateY(-1px);box-shadow:0 4px 12px -4px rgba(26,22,17,.08)!important;}
+.fc-cell.editable:hover{border-color:var(--brand)!important;}
+.fc-cell .fcl{color:var(--s500)!important;font-size:.72rem!important;font-weight:600!important;letter-spacing:.03em;}
+.fc-cell .fcl[style]{color:var(--s500)!important;}
+.fc-cell .fcv{font-family:"Noto Serif TC",serif!important;color:var(--s800)!important;font-weight:600!important;font-size:1.1rem!important;letter-spacing:-.02em;font-variant-numeric:tabular-nums;}
+.fc-cell .fcv[style]{color:var(--s800)!important;}
+.fc-cell .fcm{color:var(--s400)!important;}
+.fc-cell-add{background:var(--s50)!important;border:1.5px dashed var(--s300)!important;color:var(--s500)!important;border-radius:.625rem!important;font-weight:500!important;}
+.fc-cell-add:hover{background:var(--s100)!important;border-color:var(--brand)!important;border-style:dashed!important;color:var(--brand)!important;}
+/* 總成本 / 淨利 / 全成本毛利率 三張 summary cards — 用左邊 3px 色條區分 */
+.fc-cell[style*="FEF3C7"],.fc-cell[style*="FEF9C3"]{border-left:3px solid var(--amber)!important;}
+.fc-cell[style*="FEF2F2"],.fc-cell[style*="FEE2E2"]{border-left:3px solid var(--brand)!important;}
+.fc-cell[style*="DCFCE7"],.fc-cell[style*="F0FDF4"]{border-left:3px solid var(--green)!important;}
+.fc-cell[style*="DCFCE7"] .fcv,.fc-cell[style*="F0FDF4"] .fcv{color:var(--green)!important;}
+.fc-cell[style*="FEF2F2"] .fcv,.fc-cell[style*="FEE2E2"] .fcv{color:var(--brand)!important;}
+#fc-margin-meta span,#fc-profit-meta span{color:var(--green)!important;}
+
+/* fc-grid 區塊自己的 header / tag */
+.fc-title{color:var(--s800)!important;font-family:"Noto Serif TC",serif!important;font-weight:500!important;letter-spacing:-.015em;}
+.fc-tag,.fc-tag-growth{background:var(--amber)!important;color:var(--s800)!important;font-weight:600!important;letter-spacing:.02em;}
+
+/* #5 門市 badge 語義化顏色 */
+.br-tag{background:var(--brand)!important;color:var(--s50)!important;border:none!important;}
+.br-tag.m{background:var(--brand)!important;color:var(--s50)!important;}  /* 主要門市 — 紅印 */
+.br-tag.g{background:rgba(74,122,90,.12)!important;color:var(--green)!important;border:1px solid rgba(74,122,90,.3)!important;}  /* 狀況良好 — 玉綠 */
+.br-tag.w{background:rgba(200,152,74,.14)!important;color:var(--amber)!important;border:1px solid rgba(200,152,74,.35)!important;}  /* 需要關注 — 暖金 */
+
+/* #6+#7 Pricing feature pills + fc-tag：舊黃舊藍改統一 */
+.p-card .p-tag[style*="FFF4E6"],.p-card .p-tag[style*="C77700"]{background:rgba(200,152,74,.12)!important;color:var(--amber)!important;}
+.p-card .p-tag[style*="E0F2FE"],.p-card .p-tag[style*="0369A1"]{background:rgba(166,46,46,.08)!important;color:var(--brand)!important;}
+/* 試用送月份提示塊 */
+.p-card div[style*="#FFF7ED"],.p-card div[style*="#EFF6FF"],.p-card div[style*="#F8FAFC"]{
+  background:var(--s100)!important;border-color:var(--s300)!important;color:var(--s600)!important;
+}
+.p-card div[style*="#FFF7ED"] b,.p-card div[style*="#EFF6FF"] b{color:var(--brand)!important;}
+
+/* #8 Modal AI 建議 advice box — 米紙底 + 紅印左邊線 */
+.mb-advice{background:rgba(166,46,46,.04)!important;border:1px solid rgba(166,46,46,.2)!important;border-left:3px solid var(--brand)!important;color:var(--s700)!important;}
+
+/* #9 立即掃描 button icon 吃按鈕色 */
+#scan-btn,.btn-sp{color:var(--s50)!important;}
+.btn-s.btn-sp{color:var(--s50)!important;}
+
+/* #10 方案切換 active — 暗底白字取代紅底紅字 */
+.ps-pill.act{background:var(--s800)!important;color:var(--s50)!important;box-shadow:0 2px 6px rgba(26,22,17,.15)!important;}
+.ps-pill.act .pp-price{color:var(--amber)!important;}
+.ps-pill:not(.act) .pp-price{color:var(--brand)!important;font-weight:600;}
+
+/* #11 Hero 底線條 3px → 2px，色調退回半透明 */
+.hero h1 em::after{height:2px!important;opacity:.25!important;bottom:-.15em!important;}
+
+/* #12 Features border-right 內縮：上下留出 2rem 不貼到卡邊 */
+.feature-card{border-right:none!important;position:relative;}
+.feature-card:not(:last-child)::after{
+  content:'';position:absolute;top:2rem;bottom:2rem;right:0;
+  width:1px;background:var(--s300);
+}
+@media(max-width:900px){
+  .feature-card::after{display:none!important;}
+}
+
+/* #13 Alert banner 內的按鈕：改成 ghost outlined，不跟 banner 搶色 */
+.ab-btn,.alert-banner .btn-s.btn-sp,[class*="alert"] .btn-sp{
+  background:transparent!important;color:var(--brand)!important;
+  border:1px solid var(--brand)!important;
+}
+.ab-btn:hover,.alert-banner .btn-s.btn-sp:hover,[class*="alert"] .btn-sp:hover{
+  background:var(--brand)!important;color:var(--s50)!important;
+}
+
+/* #14 h-note 綠色成就條：改米底 + 玉綠左邊線 */
+.h-note,.sg-list + div[style*="D1FAE"],div[style*="DCFCE7"]:not(.fc-cell){
+  background:var(--s100)!important;border:1px solid var(--s300)!important;
+  border-left:3px solid var(--green)!important;color:var(--s700)!important;
+  padding:.75rem 1rem!important;border-radius:.5rem!important;
+}
+
+/* #15 側欄 user avatar 放大 + 用首字母圈 */
+.u-av{width:2.4rem!important;height:2.4rem!important;border-radius:50%!important;background:var(--brand)!important;color:var(--s50)!important;font-size:1rem!important;font-weight:600!important;font-family:"Noto Serif TC",serif!important;display:flex!important;align-items:center!important;justify-content:center!important;letter-spacing:0!important;}
+
+/* 其他：所有 inline `background:` 強制套 cream，#15803D #dc2626 系的 success/warn 顏色改成 palette */
+span[style*="#15803D"]{color:var(--green)!important;}
+span[style*="#dc2626"]{color:var(--brand)!important;}
+
 </style>
 </head>
 <body>
@@ -2427,7 +2541,7 @@ function ensureTrendChart(){
   if(trendChart||typeof Chart==='undefined')return;
   var c=document.getElementById('trendChart'); if(!c)return;
   var d=TREND_DATA.month;
-  trendChart=new Chart(c,{type:'line',data:{labels:d.labels,datasets:[{data:d.data,borderColor:'#ea580c',backgroundColor:'rgba(234,88,12,.12)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#ea580c',borderWidth:2.5}]},options:{responsive:true,aspectRatio:2.4,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(x){return x.parsed.y+'%'}}}},scales:{y:{ticks:{callback:function(v){return v+'%'}},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+  trendChart=new Chart(c,{type:'line',data:{labels:d.labels,datasets:[{data:d.data,borderColor:'#A62E2E',backgroundColor:'rgba(166,46,46,.08)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#A62E2E',borderWidth:2}]},options:{responsive:true,aspectRatio:2.4,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(x){return x.parsed.y+'%'}}}},scales:{y:{ticks:{color:'#7B7262',callback:function(v){return v+'%'}},grid:{color:'#E8DFC5'}},x:{ticks:{color:'#7B7262'},grid:{display:false}}}}});
 }
 function setTrend(range,btn){
   document.querySelectorAll('#tab-history .seg-btn').forEach(function(b){b.classList.remove('act')}); if(btn)btn.classList.add('act');
