@@ -1661,7 +1661,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
           <div class="fc-cell" style="background:linear-gradient(135deg,#DCFCE7,#F0FDF4);border-color:#86EFAC;grid-column:span 2"><div class="fcl">全成本毛利率</div><div class="fcv" style="color:#15803D;font-size:1.3rem"><span class="fc-num" data-k="margin">28.7</span>%</div><div class="fcm" id="fc-margin-meta">標準 ≥ 25%</div></div>
         </div>
         <div class="fc-comparison">
-          📊 對照：僅看食材成本時毛利率為 <b>51.3%</b>，但扣除房租／水電／人力後，<b>真實全成本毛利率僅 <span id="fc-margin-inline">28.7</span>%</b>，每月實際淨利約 <b>NT$<span id="fc-profit-inline">86,000</span></b> — 這才是你口袋裡實際賺到的錢。
+          📊 對照：僅看食材成本時毛利率為 <b><span id="fc-ingr-inline">—</span>%</b>，但扣除房租／水電／人力後，<b>真實全成本毛利率僅 <span id="fc-margin-inline">—</span>%</b>，每月實際淨利約 <b>NT$<span id="fc-profit-inline">—</span></b> — 這才是你口袋裡實際賺到的錢。
         </div>
       </div>
 
@@ -3304,6 +3304,7 @@ function renderMyMenu(){
   var im = document.getElementById('ingr-margin'); if (im) im.textContent = avgMargin;
   var ims = document.getElementById('ingr-margin-sub');
   if (ims) ims.textContent = MY_MENU.length ? ('共 ' + MY_MENU.length + ' 道菜・警戒線 ' + MY_THRESHOLD + '%') : '尚無資料・匯入菜單後自動計算';
+  var fci = document.getElementById('fc-ingr-inline'); if (fci) fci.textContent = avgMargin;
 
   // Alert banner：有警示才顯示，數字跟著變
   var ab = document.getElementById('alert-banner');
