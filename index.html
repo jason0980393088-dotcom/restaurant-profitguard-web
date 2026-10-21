@@ -1624,8 +1624,8 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
     <!-- TAB: OVERVIEW -->
     <div id="tab-overview" class="tab-content show">
       <div class="kpi-grid">
-        <div class="kpi warn"><div class="k-label warn">⚠️ 需要關注</div><div class="k-val warn" id="warn-cnt">3</div><div class="k-meta" style="color:#f87171">低於警戒線 25%</div></div>
-        <div class="kpi good"><div class="k-label good">✅ 食材毛利率</div><div class="k-val good">51.3%</div><div class="k-meta up">↑ 較上月 +1.2%</div></div>
+        <div class="kpi warn"><div class="k-label warn">⚠️ 需要關注</div><div class="k-val warn" id="warn-cnt">—</div><div class="k-meta" id="warn-sub" style="color:#f87171">低於警戒線 <span id="warn-threshold">25</span>%</div></div>
+        <div class="kpi good"><div class="k-label good">✅ 食材毛利率</div><div class="k-val good"><span id="ingr-margin">—</span>%</div><div class="k-meta up" id="ingr-margin-sub">尚無資料・匯入菜單後自動計算</div></div>
         <div class="kpi" data-requires="growth" style="position:relative;min-height:120px;background:linear-gradient(135deg,#EFF6FF,#F0F9FF);border:1px solid #BAE6FD"><div class="k-label" style="color:#0369A1">🏢 全成本毛利率</div><div class="k-val" style="color:#0369A1"><span id="kpi-margin">28.7</span>%</div><div class="k-meta up">含房租／水電／人力分攤</div></div>
         <div class="kpi" data-requires="growth" style="position:relative;min-height:120px;background:linear-gradient(135deg,#FEF2F2,#FEE2E2);border:1px solid #FCA5A5"><div class="k-label" style="color:#991B1B">💰 本月淨利</div><div class="k-val" style="color:#B91C1C">NT$<span id="kpi-profit">86,000</span></div><div class="k-meta">營收 − 總成本</div></div>
       </div>
@@ -1665,10 +1665,10 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         </div>
       </div>
 
-      <div class="alert-banner">
+      <div class="alert-banner" id="alert-banner" style="display:none">
         <span class="ab-icon">⚠️</span>
         <div>
-          <div class="ab-title">發現 3 道菜毛利率低於警戒線（25%）</div>
+          <div class="ab-title" id="alert-title">發現 — 道菜毛利率低於警戒線</div>
           <div class="ab-sub">AI 已生成改善建議，建議本週內與廚房主管討論調整方案</div>
         </div>
         <button class="ab-btn" onclick="swTab('suggestions',document.querySelectorAll('.sb-item')[2])">查看建議 →</button>
@@ -2605,27 +2605,48 @@ function filterRows(type,btn){
   });
 }
 
-// ── SCAN ANIMATION ────────────────────────────────────────────
-function runScan(){
+// ── SCAN：真實呼叫後端重算 + 推播 LINE Flex（未登入才用動畫 demo）─
+async function runScan(){
   const btn=document.getElementById('scan-btn');
   const bar=document.getElementById('scan-bar');
   const fill=document.getElementById('scan-fill');
   const pct=document.getElementById('scan-pct');
+  const auth = (typeof pgAuth==='function') ? pgAuth() : null;
+
   btn.disabled=true; btn.textContent='掃描中…';
   bar.classList.add('show');
   let p=0;
-  const iv=setInterval(()=>{
-    p+=Math.random()*18+4;
-    if(p>=100){p=100;clearInterval(iv);
-      setTimeout(()=>{
-        bar.classList.remove('show');
-        btn.disabled=false; btn.textContent='⚡ 立即掃描';
-        fill.style.width='0%'; pct.textContent='0%';
-        showToast('success','✅ 掃描完成！發現 3 道菜需要關注');
-      },600);
+  const iv=setInterval(()=>{ p=Math.min(p+Math.random()*18+4,95); fill.style.width=p+'%'; pct.textContent=Math.floor(p)+'%'; },220);
+  const finish=(msg,type)=>{
+    clearInterval(iv); fill.style.width='100%'; pct.textContent='100%';
+    setTimeout(()=>{ bar.classList.remove('show'); btn.disabled=false; btn.textContent='⚡ 立即掃描'; fill.style.width='0%'; pct.textContent='0%'; showToast(type||'success',msg); },500);
+  };
+
+  // 未登入 → 保留 demo 動畫（給訪客預覽）
+  if (!auth || !MY_MENU || !MY_MENU.length){
+    setTimeout(()=>finish('✅ 示範掃描完成（登入後會掃你的真實菜單）','info'), 2000);
+    return;
+  }
+
+  // 已登入 → POST /api/menu 觸發後端重算 + 立即推播 LINE Flex
+  try {
+    const r = await fetch(BACKEND_URL + '/api/menu/' + auth.uid, {
+      method:'POST',
+      headers: Object.assign({'Content-Type':'application/json'}, authHeaders()),
+      body: JSON.stringify({ menu: MY_MENU, threshold: MY_THRESHOLD }),
+      signal: AbortSignal.timeout(45000),
+    });
+    if (!r.ok){
+      const err = await r.json().catch(()=>({error:'unknown'}));
+      return finish('⚠️ 掃描失敗：' + (err.error||r.status), 'warn');
     }
-    fill.style.width=p+'%'; pct.textContent=Math.floor(p)+'%';
-  },220);
+    const j = await r.json();
+    await loadMyData();   // 重讀最新狀態，自動更新 KPI/警示 banner
+    const warn = MY_MENU.filter(m => m.margin < MY_THRESHOLD).length;
+    finish('✅ 掃描完成！共 ' + (j.items||MY_MENU.length) + ' 道・' + warn + ' 道需要關注・LINE 已推播');
+  } catch(e){
+    finish('⚠️ 連不到伺服器（可能喚醒中，請等 30 秒重試）', 'warn');
+  }
 }
 
 // ── MODAL ─────────────────────────────────────────────────────
@@ -3192,6 +3213,16 @@ window.addEventListener('DOMContentLoaded', function(){
   if (auth){
     var nb = document.getElementById('nav-login');
     if (nb){ nb.textContent = '進入後台（'+(auth.name||'已登入')+'）'; }
+    // 首次登入 → 清空 demo 用假成本數字，讓新用戶從 0 開始填
+    var initFlag = 'rpg_user_init_' + auth.uid;
+    if (!localStorage.getItem(initFlag)){
+      try {
+        costs = { revenue:0, food:0, rent:0, utility:0, labor:0, utility_items:[], employees:[], custom:[] };
+        localStorage.setItem('rpg_costs', JSON.stringify(costs));
+        localStorage.setItem(initFlag, '1');
+        if (typeof renderCosts === 'function') renderCosts();
+      } catch(e){}
+    }
     showScreen('screen-dashboard');
     loadMyData();
   }
@@ -3248,13 +3279,14 @@ function renderUserBanner(name, data){
   host.insertBefore(bar, host.firstChild);
 }
 
-// 用自己的菜單重繪「菜單管理」表格與計數
+// 用自己的菜單重繪「菜單管理」表格與頂部 KPI / 警示 banner
 function renderMyMenu(){
   if (!MY_MENU) return;
-  var tb = document.getElementById('menu-rows'); if (!tb) return;
-  var warn = 0, ok = 0, rows = '';
+  var tb = document.getElementById('menu-rows');
+  var warn = 0, ok = 0, rows = '', sumMargin = 0;
   MY_MENU.forEach(function(m, i){
     var isWarn = m.margin < MY_THRESHOLD; if (isWarn) warn++; else ok++;
+    sumMargin += m.margin;
     var color = isWarn ? 'r-red' : (m.margin < MY_THRESHOLD + 10 ? 'r-blu' : 'r-grn');
     var badge = isWarn ? '<span class="badge bw">⚠️ 警示</span>' : '<span class="badge bo">✅ 健康</span>';
     rows += '<tr class="data-row" data-t="' + (isWarn?'warn':'ok') + '" onclick="editDish(' + i + ')">'
@@ -3262,9 +3294,24 @@ function renderMyMenu(){
       + '<td class="r"><span class="' + color + '">' + m.margin + '%</span></td>'
       + '<td class="c">' + badge + '</td><td><span class="ai-txt">每日 07:30 自動生成</span></td></tr>';
   });
-  tb.innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:2rem">還沒有菜色——按右上「+ 新增菜色」開始</td></tr>';
+  if (tb) tb.innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:2rem">還沒有菜色——按右上「+ 新增菜色」開始</td></tr>';
+
+  // 真實 KPI：需要關注 count + 食材毛利率平均
+  var avgMargin = MY_MENU.length ? (sumMargin / MY_MENU.length).toFixed(1) : '—';
   var wc = document.getElementById('warn-cnt'); if (wc) wc.textContent = warn;
   var sc = document.getElementById('sg-cnt'); if (sc) sc.textContent = warn;
+  var wth = document.getElementById('warn-threshold'); if (wth) wth.textContent = MY_THRESHOLD;
+  var im = document.getElementById('ingr-margin'); if (im) im.textContent = avgMargin;
+  var ims = document.getElementById('ingr-margin-sub');
+  if (ims) ims.textContent = MY_MENU.length ? ('共 ' + MY_MENU.length + ' 道菜・警戒線 ' + MY_THRESHOLD + '%') : '尚無資料・匯入菜單後自動計算';
+
+  // Alert banner：有警示才顯示，數字跟著變
+  var ab = document.getElementById('alert-banner');
+  var at = document.getElementById('alert-title');
+  if (ab) ab.style.display = warn > 0 ? '' : 'none';
+  if (at) at.textContent = '發現 ' + warn + ' 道菜毛利率低於警戒線（' + MY_THRESHOLD + '%）';
+
+  // 篩選分頁計數
   var tabs = document.querySelectorAll('.ftab');
   if (tabs.length === 3){ tabs[0].textContent = '全部 (' + MY_MENU.length + ')'; tabs[1].textContent = '⚠️ 警示 (' + warn + ')'; tabs[2].textContent = '✅ 健康 (' + ok + ')'; }
 }
