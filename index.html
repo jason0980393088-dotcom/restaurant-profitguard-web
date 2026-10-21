@@ -1376,7 +1376,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         </select>
       </label>
       <button class="btn-cta" id="nav-login" style="background:#06C755;box-shadow:0 4px 12px rgba(6,199,85,.35)" onclick="lineLogin()">LINE 登入</button>
-      <button class="btn-cta" onclick="showScreen('screen-onboard')">免費試用 14 天</button>
+      <button class="btn-cta" onclick="lineLogin()">免費試用 14 天</button>
     </div>
   </nav>
 
@@ -1385,7 +1385,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
     <h1>每天早上 7:30<br><em>AI 主動告訴你</em><br>哪道菜在虧錢</h1>
     <p>串接你的菜單，自動計算毛利率。低於警戒線立刻推播 LINE 通知，並附上 AI 改善建議。串接農業部每日食材行情，成本自動更新。不用懂技術，5 分鐘上線，隨時取消。</p>
     <div class="hero-btns">
-      <button class="btn-hero-p" onclick="showScreen('screen-onboard')">免費開始 — 不需信用卡</button>
+      <button class="btn-hero-p" onclick="lineLogin()">用 LINE 免費開始 — 不需信用卡</button>
       <button class="btn-hero-o" onclick="showScreen('screen-dashboard')">查看 Demo →</button>
     </div>
   </section>
@@ -1427,7 +1427,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#FFF4E6;color:#C77700;font-size:.72rem;font-weight:600;margin-bottom:.5rem">食材成本掃描</div>
         <ul class="p-list"><li>管理一家店</li><li>LINE 即時預警推播</li><li>AI 改善建議 8 次/月</li><li>毛利警戒線制定</li></ul>
         <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:.6rem;font-size:.74rem;color:#475569;line-height:1.6">🎁 一個月免費試用<br>續訂半年送 <b>2</b> 個月・一年送 <b>4</b> 個月（以此類推）</div>
-        <button class="btn-p btn-p-o" onclick="showScreen('screen-onboard')">開始試用</button>
+        <button class="btn-p btn-p-o" onclick="lineLogin()">用 LINE 開始試用</button>
       </div>
       <div class="p-card hot card-hover">
         <div class="hot-tag">最受歡迎</div>
@@ -1437,7 +1437,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#E0F2FE;color:#0369A1;font-size:.72rem;font-weight:600;margin-bottom:.5rem">✨ 真實全成本毛利率</div>
         <ul class="p-list"><li>一般方案所有功能</li><li>管理三家店</li><li>AI 改善建議 12 次/月</li><li>POS 系統自動串接</li><li><b>真實全成本毛利率分析</b></li></ul>
         <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#EFF6FF;border:1px dashed #93C5FD;border-radius:.6rem;font-size:.74rem;color:#1D4ED8;line-height:1.6">🎁 一個月免費試用<br>續訂半年送 <b>3</b> 個月・一年送 <b>6</b> 個月（以此類推）</div>
-        <button class="btn-p btn-p-w" onclick="showScreen('screen-onboard')">開始試用</button>
+        <button class="btn-p btn-p-w" onclick="lineLogin()">用 LINE 開始試用</button>
       </div>
       <div class="p-card card-hover">
         <div class="p-name">企業方案 Enterprise</div>
@@ -3211,19 +3211,30 @@ function renderUserBanner(name, data){
   var host = document.querySelector('.dash-main') || document.body;
   var bar = document.createElement('div');
   bar.id = 'pg-user-banner';
-  bar.style.cssText = 'margin:0 0 1rem;padding:.7rem 1rem;border-radius:.6rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;font-size:.85rem;font-weight:700;';
+  bar.style.cssText = 'margin:0 0 1rem;padding:.9rem 1.1rem;border-radius:.75rem;font-size:.9rem;font-weight:500;line-height:1.55;';
   var inner;
   if (!data){
-    bar.style.background = '#FEF3C7'; bar.style.border = '1px solid #FCD34D'; bar.style.color = '#92400E';
-    inner = '👋 ' + name + '，你已登入，但還沒綁定 LINE Bot —— 請先用手機加入官方帳號並傳「綁定」，再重新整理本頁。';
+    // 已登入但沒綁 Bot：直接把 QR + 操作步驟放出來，不用繞到 Onboarding
+    bar.style.background = '#FEF3C7'; bar.style.border = '1px solid #FCD34D'; bar.style.color = '#78350F';
+    inner = '<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">'
+          + '<div><b>👋 ' + name + '，再一步就完成囉！</b><br><span style="font-weight:400;font-size:.825rem">用手機 LINE 掃右邊 QR 加好友，然後傳「<b>綁定</b>」，刷新本頁即可開始使用。</span></div>'
+          + '<button onclick="location.reload()" style="padding:.5rem 1.1rem;border-radius:9999px;background:#A62E2E;color:#fff;font-weight:600;font-size:.825rem;white-space:nowrap">完成了，刷新</button>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:1rem;padding:.75rem;background:rgba(255,255,255,.6);border-radius:.5rem;flex-wrap:wrap">'
+          + '<img src="https://api.qrserver.com/v1/create-qr-code/?data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40663vbbit&size=120x120&color=00B900" style="width:100px;height:100px;border-radius:.4rem;border:2px solid #00B900;padding:3px;background:#fff" alt="LINE 官方帳號 QR" />'
+          + '<div style="flex:1;min-width:180px;font-size:.825rem;font-weight:400">'
+          + '<div style="font-weight:600;margin-bottom:.3rem">三步完成綁定</div>'
+          + '1. 手機掃上面 QR Code<br>2. 加入 LINE 官方帳號好友<br>3. 傳送文字「<b>綁定</b>」'
+          + '</div>'
+          + '</div>';
   } else if (data.is_demo){
-    bar.style.background = '#DBEAFE'; bar.style.border = '1px solid #93C5FD'; bar.style.color = '#1E40AF';
-    inner = '✅ 已登入：' + name + '　|　目前顯示<b>示範菜單</b>——到「菜單管理」按「+ 新增菜色」建立你自己的菜單，毛利警報就會用你的真實資料。';
+    bar.style.background = '#F5EEDA'; bar.style.border = '1px solid #D5CDB6'; bar.style.color = '#4F4A41';
+    inner = '<b style="color:#A62E2E">✅ 已登入：' + name + '</b>　|　目前顯示<b>示範菜單</b>——到「菜單管理」按「+ 新增菜色」建立你自己的菜單，毛利警報就會用你的真實資料。';
   } else {
-    bar.style.background = '#D1FAE5'; bar.style.border = '1px solid #6EE7B7'; bar.style.color = '#065F46';
-    inner = '✅ 已登入：' + name + '　|　<b>我的菜單</b>（' + (MY_MENU?MY_MENU.length:0) + ' 道菜・警戒線 ' + MY_THRESHOLD + '%）每日 07:30 LINE 推播你的真實數字。';
+    bar.style.background = 'rgba(74,122,90,.08)'; bar.style.border = '1px solid rgba(74,122,90,.3)'; bar.style.color = '#2E524A';
+    inner = '<b style="color:#4A7A5A">✅ 已登入：' + name + '</b>　|　<b>我的菜單</b>（' + (MY_MENU?MY_MENU.length:0) + ' 道菜・警戒線 ' + MY_THRESHOLD + '%）每日 07:30 LINE 推播你的真實數字。';
   }
-  bar.innerHTML = inner + '<button onclick="pgLogout()" style="margin-left:auto;padding:.3rem .8rem;border-radius:.4rem;background:rgba(0,0,0,.08);font-weight:700">登出</button>';
+  bar.innerHTML = inner + (data ? '<button onclick="pgLogout()" style="margin-left:1rem;padding:.3rem .8rem;border-radius:9999px;background:rgba(0,0,0,.08);font-weight:500;font-size:.78rem">登出</button>' : '');
   host.insertBefore(bar, host.firstChild);
 }
 
