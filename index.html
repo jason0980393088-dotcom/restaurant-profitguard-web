@@ -1320,10 +1320,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .ps-pill.act .pp-price{color:var(--amber)!important;}
 .ps-pill:not(.act) .pp-price{color:var(--brand)!important;font-weight:600;}
 
-/* #11 Hero 底線條：3px 半透明紅印，讓它清楚看得見；h1 line-height 放鬆避免卡住底線空間 */
+/* Hero：單一強調（色），拿掉重複的底線 — FD 建議「別雙重強調」 */
 .hero h1{line-height:1.18!important;}
-.hero h1 em{display:inline-block;padding-bottom:.1em;}
-.hero h1 em::after{height:3px!important;opacity:.45!important;bottom:.02em!important;border-radius:3px!important;}
+.hero h1 em{display:inline;padding-bottom:0;}
+.hero h1 em::after{display:none!important;}
+
+/* 修 sticky nav 蓋內容：所有 section 捲動時留 nav 高度（≈ 84px） */
+.pricing,.about-sec,.features,#features,section[id]{scroll-margin-top:92px;}
+/* pricing 整段再加頂部 padding，避免 sticky nav 疊在價格上 */
+.pricing{padding-top:7rem!important;}
 
 /* #12 Features border-right 內縮：上下留出 2rem 不貼到卡邊 */
 .feature-card{border-right:none!important;position:relative;}
@@ -1381,13 +1386,13 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
   </nav>
 
   <section class="hero">
-    <div class="hero-pill"><span class="pulse"></span>新興創業項目 · 預計服務台灣中小型餐廳</div>
     <h1>每天早上 7:30<br><em>AI 主動告訴你</em><br>哪道菜在虧錢</h1>
     <p>串接你的菜單，自動計算毛利率。低於警戒線立刻推播 LINE 通知，並附上 AI 改善建議。串接農業部每日食材行情，成本自動更新。不用懂技術，5 分鐘上線，隨時取消。</p>
     <div class="hero-btns">
-      <button class="btn-hero-p" onclick="lineLogin()">用 LINE 免費開始 — 不需信用卡</button>
-      <button class="btn-hero-o" onclick="showScreen('screen-dashboard')">查看 Demo →</button>
+      <button class="btn-hero-p" onclick="lineLogin()">用 LINE 免費開始</button>
+      <button class="btn-hero-o" onclick="showScreen('screen-dashboard')">查看 Demo</button>
     </div>
+    <div style="font-size:.78rem;color:var(--s400);margin-top:.9rem;text-align:center;">30 天試用・不綁信用卡</div>
   </section>
 
   <div class="features" id="features">
@@ -1492,7 +1497,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         </div>
         <div class="hint">低於此數值自動觸發 AI 警示</div>
       </div>
-      <button class="btn-main" onclick="goOb(2)">下一步 →</button>
+      <button class="btn-main" onclick="goOb(2)">下一步</button>
     </div>
 
     <div id="ob2" class="step">
@@ -1506,7 +1511,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
       <input type="file" id="file-input" accept=".xlsx,.csv" style="display:none" onchange="if(this.files.length){showToast('success','📥 已選取：'+this.files[0].name+'，正在解析…');this.value='';goOb(3);}">
       <div class="sep-text">— 或 —</div>
       <button class="btn-2nd" onclick="downloadMenuTemplate()">📥 下載菜單範本（Excel）</button>
-      <button class="btn-main" onclick="goOb(3)">使用範例資料繼續 →</button>
+      <button class="btn-main" onclick="goOb(3)">使用範例資料繼續</button>
     </div>
 
     <div id="ob3" class="step">
@@ -1540,7 +1545,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         <div class="bind-ok-text">LINE 綁定成功！</div>
         <div class="bind-ok-sub">已綁定 LINE 帳號：王小明 ｜ 明日 07:30 開始推播</div>
       </div>
-      <button class="btn-main" id="btn-bind-wx" style="margin-top:1rem" onclick="doLineBind()">已加入，驗證綁定 →</button>
+      <button class="btn-main" id="btn-bind-wx" style="margin-top:1rem" onclick="doLineBind()">已加入，驗證綁定</button>
       <button class="skip-btn" onclick="goOb(4)">暫時跳過</button>
     </div>
 
@@ -1555,7 +1560,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         <div class="done-item"><span class="done-ck">✓</span>毛利警戒線：25%</div>
         <div class="done-item"><span class="done-ck">✓</span>首次掃描將於明日 07:30 執行</div>
       </div>
-      <button class="btn-main" onclick="showScreen('screen-dashboard')">進入 Dashboard →</button>
+      <button class="btn-main" onclick="showScreen('screen-dashboard')">進入 Dashboard</button>
     </div>
   </div>
 </div>
@@ -1671,7 +1676,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
           <div class="ab-title" id="alert-title">發現 — 道菜毛利率低於警戒線</div>
           <div class="ab-sub">AI 已生成改善建議，建議本週內與廚房主管討論調整方案</div>
         </div>
-        <button class="ab-btn" onclick="swTab('suggestions',document.querySelectorAll('.sb-item')[2])">查看建議 →</button>
+        <button class="ab-btn" onclick="swTab('suggestions',document.querySelectorAll('.sb-item')[2])">查看建議</button>
       </div>
 
       <div class="t-card">
@@ -2508,7 +2513,7 @@ async function doLineBind(){
       setTimeout(()=>{ goOb(4); }, 1800);
     } else {
       btn.disabled = false;
-      btn.textContent = '已加入，驗證綁定 →';
+      btn.textContent = '已加入，驗證綁定';
       btn.style.opacity = '1';
       showToast('warn','⚠️ 尚未偵測到綁定，請先掃碼加入並傳送「綁定」');
     }
