@@ -1713,6 +1713,8 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
           <button class="btn-s btn-so" onclick="downloadMenuTemplate()">📥 下載範本</button>
           <button class="btn-s btn-so" onclick="document.getElementById('menu-file').click()">📤 匯入 Excel/CSV</button>
           <input type="file" id="menu-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importMenuFromFile(event)">
+          <button class="btn-s btn-sp" onclick="document.getElementById('invoice-file').click()" style="background:var(--brand)!important;color:#fff">📸 拍進貨單</button>
+          <input type="file" id="invoice-file" accept="image/*" capture="environment" style="display:none" onchange="uploadInvoiceOCR(event)">
           <button class="btn-s btn-sp" onclick="addDish()">+ 新增菜色</button>
         </div>
       </div>
@@ -3345,6 +3347,120 @@ function downloadMenuTemplate(){
   document.body.appendChild(a); a.click(); a.remove();
   if(window.showToast) showToast('success','📥 菜單範本已下載（用 Excel 開啟編輯後再匯入）');
 }
+// ── Vision OCR：拍進貨單自動抽品項 ──
+async function uploadInvoiceOCR(ev){
+  var file = ev.target.files[0]; if(!file) return;
+  ev.target.value = '';
+  var auth = (typeof pgAuth==='function') ? pgAuth() : null;
+  if (!auth){ showToast('warn','請先用 LINE 登入才能上傳進貨單'); return; }
+
+  // 檢查檔案大小（10MB cap）
+  if (file.size > 10*1024*1024){ showToast('warn','圖片超過 10MB，請拍小一點或重拍'); return; }
+
+  // 跳 loading toast
+  showToast('info','📸 掃描中⋯⋯約 10 秒');
+
+  // 讀成 base64
+  var base64 = await new Promise(function(resolve,reject){
+    var r = new FileReader();
+    r.onload = function(){ resolve(r.result.split(',')[1]); };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+
+  try {
+    var resp = await fetch(BACKEND_URL + '/api/invoice/ocr/' + auth.uid, {
+      method:'POST',
+      headers: Object.assign({'Content-Type':'application/json'}, authHeaders()),
+      body: JSON.stringify({ image_base64: base64 }),
+      signal: AbortSignal.timeout(60000),
+    });
+    if (!resp.ok){
+      var err = await resp.json().catch(function(){return{error:resp.status};});
+      showToast('warn','OCR 失敗：'+(err.error||'未知錯誤')+(err.hint?' ('+err.hint+')':''));
+      return;
+    }
+    var j = await resp.json();
+    showInvoiceModal(j.data, j.usage);
+  } catch(e){
+    showToast('warn','連線失敗：'+e.message);
+  }
+}
+
+// 顯示 OCR 結果 Modal（可編輯 + 存入進貨紀錄）
+function showInvoiceModal(data, usage){
+  var old = document.getElementById('invoice-ocr-modal'); if (old) old.remove();
+  var items = data.items || [];
+  var itemsHtml = items.map(function(it, i){
+    return '<tr>'
+      + '<td style="padding:.5rem"><input value="'+(it.name||'').replace(/"/g,'&quot;')+'" data-i="'+i+'" data-k="name" style="width:100%;border:1px solid var(--s300);border-radius:.3rem;padding:.3rem .4rem" /></td>'
+      + '<td class="r" style="padding:.5rem"><input type="number" step="any" value="'+(it.qty||0)+'" data-i="'+i+'" data-k="qty" style="width:60px;border:1px solid var(--s300);border-radius:.3rem;padding:.3rem .4rem;text-align:right" /></td>'
+      + '<td class="c" style="padding:.5rem"><input value="'+(it.unit||'')+'" data-i="'+i+'" data-k="unit" style="width:50px;border:1px solid var(--s300);border-radius:.3rem;padding:.3rem .4rem;text-align:center" /></td>'
+      + '<td class="r" style="padding:.5rem"><input type="number" step="any" value="'+(it.unit_price||0)+'" data-i="'+i+'" data-k="unit_price" style="width:70px;border:1px solid var(--s300);border-radius:.3rem;padding:.3rem .4rem;text-align:right" /></td>'
+      + '<td class="r" style="padding:.5rem;font-family:Noto Serif TC,serif;font-weight:600">'+((+it.amount||0).toLocaleString())+'</td>'
+      + '</tr>';
+  }).join('');
+  var html = ''
+    + '<div id="invoice-ocr-modal" class="modal show" style="z-index:300">'
+    + '<div class="modal-bk" onclick="document.getElementById(\'invoice-ocr-modal\').remove()"></div>'
+    + '<div class="modal-c" style="max-width:720px;width:95%">'
+    + '  <div class="modal-h">'
+    + '    <h3 style="font-family:Noto Serif TC,serif">📸 進貨單辨識結果</h3>'
+    + '    <button class="modal-x" onclick="document.getElementById(\'invoice-ocr-modal\').remove()">×</button>'
+    + '  </div>'
+    + '  <div class="modal-b">'
+    + '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;font-size:.85rem">'
+    + '      <div><b>供應商：</b>'+(data.supplier||'—')+'</div>'
+    + '      <div><b>日期：</b>'+(data.date||'—')+'</div>'
+    + '      <div><b>單號：</b>'+(data.doc_number||'—')+'</div>'
+    + '      <div><b>合計：</b><span style="color:var(--brand);font-weight:600">NT$'+((+data.total||0).toLocaleString())+'</span></div>'
+    + '    </div>'
+    + '    <table style="width:100%;border-collapse:collapse;font-size:.85rem">'
+    + '      <thead><tr style="background:var(--s100);border-bottom:1px solid var(--s300)">'
+    + '        <th style="padding:.5rem;text-align:left">品名</th>'
+    + '        <th class="r" style="padding:.5rem">數量</th>'
+    + '        <th class="c" style="padding:.5rem">單位</th>'
+    + '        <th class="r" style="padding:.5rem">單價</th>'
+    + '        <th class="r" style="padding:.5rem">金額</th>'
+    + '      </tr></thead>'
+    + '      <tbody id="ocr-items-body">'+itemsHtml+'</tbody>'
+    + '    </table>'
+    + '    <div style="margin-top:1rem;padding:.75rem;background:var(--s100);border-radius:.5rem;font-size:.78rem;color:var(--s600);line-height:1.6">'
+    + '      ℹ️ 數字抓錯？直接點格子改。確認後按下方「存入進貨紀錄」，之後在「菜單管理」填新菜的成本時，可以參考這些食材單價。'
+    + ((data.confidence==='low')?'<br>⚠️ <b>辨識信心：低</b>（圖片不清楚），請仔細核對。':'')
+    + '</div>'
+    + '  </div>'
+    + '  <div style="padding:1rem 1.5rem;border-top:1px solid var(--s300);display:flex;gap:.5rem;justify-content:flex-end">'
+    + '    <button class="cm-btn cm-btn-s" onclick="document.getElementById(\'invoice-ocr-modal\').remove()">關閉</button>'
+    + '    <button class="cm-btn cm-btn-p" onclick="saveInvoiceToHistory()">存入進貨紀錄</button>'
+    + '  </div>'
+    + '</div>'
+    + '</div>';
+  var wrap = document.createElement('div');
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap.firstChild);
+  // 把 data 暫存到 modal 讓 saveInvoiceToHistory 讀
+  window.__ocrPending = data;
+}
+
+function saveInvoiceToHistory(){
+  var data = window.__ocrPending; if (!data) return;
+  // 從 UI 讀最新編輯值
+  document.querySelectorAll('#ocr-items-body input').forEach(function(inp){
+    var i = +inp.getAttribute('data-i'), k = inp.getAttribute('data-k');
+    if (!data.items[i]) return;
+    data.items[i][k] = (k==='name'||k==='unit') ? inp.value : (+inp.value||0);
+  });
+  // 存進 localStorage 進貨紀錄
+  var hist = JSON.parse(localStorage.getItem('pg_invoice_history')||'[]');
+  hist.unshift({ saved_at: new Date().toISOString(), ...data });
+  if (hist.length > 50) hist = hist.slice(0, 50); // 保留最近 50 張
+  localStorage.setItem('pg_invoice_history', JSON.stringify(hist));
+  var modal = document.getElementById('invoice-ocr-modal'); if (modal) modal.remove();
+  showToast('success','✅ 已存入進貨紀錄（共 '+hist.length+' 張）');
+  window.__ocrPending = null;
+}
+
 // ── 真實：從 CSV/Excel 匯入菜單 ──
 function importMenuFromFile(ev){
   var file = ev.target.files[0]; if(!file) return;
