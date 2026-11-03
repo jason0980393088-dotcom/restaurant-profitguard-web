@@ -1719,7 +1719,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
           <button class="btn-s btn-sp" onclick="addDish()">+ 新增菜色</button>
         </div>
       </div>
-      <div class="cost-warn">🔔 食材成本每週會變動，建議每月更新一次。<strong>上次更新：14 天前</strong><button class="btn-s btn-so" style="margin-left:auto;font-size:.75rem" onclick="showToast('success','✅ 成本資料更新完成，共更新 8 項食材價格')">更新成本</button></div>
+      <div class="cost-warn">🔔 食材成本每週會變動，建議每月更新一次。<strong>上次更新：14 天前</strong><button class="btn-s btn-so" style="margin-left:auto;font-size:.75rem" onclick="loadMarket();showToast('info','🔄 正在從農業部拉取最新食材行情…')">更新成本</button></div>
       <div class="t-card">
         <div class="t-hdr"><div class="t-title">所有菜色（8 道）</div></div>
         <table>
@@ -1868,14 +1868,14 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
           <div class="br-meta">10 道菜 · 4 項警示 · 今日已掃描</div>
           <div class="br-prog"><div class="prog-track"><div class="prog-fill red" style="width:40%"></div></div><span class="prog-pct red" style="color:#ef4444">40.0% 健康</span></div>
         </div>
-        <div class="br-card add card-hover" onclick="showToast('info','Growth 方案最多可新增 3 家門市，目前已使用 2 家，可再新增 1 家')">
+        <div class="br-card add card-hover" onclick="showToast('info','🔒 新增門市需要 Growth 方案以上（目前 Demo／Starter 僅支援 1 家）')">
           <div class="add-plus">+</div>
           <div style="font-size:.875rem;font-weight:600">新增門市</div>
           <div style="font-size:.75rem;opacity:.7;margin-top:.25rem">Growth 方案可加至 3 家</div>
         </div>
       </div>
       <div class="t-card">
-        <div class="t-hdr"><div class="t-title">用戶權限管理</div><button class="btn-s btn-sp" style="font-size:.75rem" onclick="showToast('info','邀請郵件已傳送，等待對方接受')">+ 邀請成員</button></div>
+        <div class="t-hdr"><div class="t-title">用戶權限管理</div><button class="btn-s btn-sp" style="font-size:.75rem" onclick="showToast('info','🔒 邀請成員需要 Growth 方案以上（Demo 模式無法真實送出邀請）')">+ 邀請成員</button></div>
         <table>
           <thead><tr><th>用戶</th><th>角色</th><th>可存取門市</th><th>最後登入</th><th class="c">操作</th></tr></thead>
           <tbody>
@@ -1908,9 +1908,9 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         </div>
         <div class="st-card">
           <div class="st-title">🔒 安全與資料</div>
-          <div class="st-row"><span class="st-label">隨時匯出全部資料</span><button class="btn-exp" onclick="showToast('success','📊 CSV 匯出中，稍後將自動下載')">匯出 CSV</button></div>
+          <div class="st-row"><span class="st-label">隨時匯出全部資料</span><button class="btn-exp" onclick="exportReport()">匯出 CSV</button></div>
           <div class="st-row"><span class="st-label">資料儲存地區</span><span class="st-muted">亞太（台灣）ap-northeast-1</span></div>
-          <div class="st-row" data-requires="enterprise" style="position:relative;min-height:48px"><span class="st-label">API 金鑰</span><button class="btn-exp" onclick="showToast('success','API 金鑰已複製到剪貼簿')">複製金鑰</button></div>
+          <div class="st-row" data-requires="enterprise" style="position:relative;min-height:48px"><span class="st-label">API 金鑰</span><button class="btn-exp" onclick="showToast('info','🔒 API 金鑰為 Enterprise 方案專屬功能，請聯絡我們取得')">複製金鑰</button></div>
           <div class="st-row"><span class="st-label">雙因素驗證</span><div class="toggle off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-k"></div></div></div>
         </div>
         <div class="st-card">
@@ -2005,6 +2005,38 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
 
 <!-- TOAST -->
 <div class="toast" id="toast"><span id="toast-icon"></span><span id="toast-msg"></span></div>
+
+<!-- ══════════ 新增／編輯菜色 Modal ══════════ -->
+<div class="cost-modal" id="dish-modal" onclick="if(event.target===this)closeDishModal()">
+  <div class="cm-box" style="max-width:420px">
+    <div class="cm-hdr">
+      <div class="cm-title" id="dm-title">新增菜色</div>
+      <button class="cm-x" onclick="closeDishModal()">×</button>
+    </div>
+    <div class="cm-body" style="padding:1.25rem">
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div>
+          <label style="display:block;font-size:.85rem;color:#64748b;margin-bottom:.3rem;font-weight:600">菜色名稱</label>
+          <input id="dm-name" type="text" placeholder="例：滷肉飯" style="width:100%;padding:.75rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:1rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="display:block;font-size:.85rem;color:#64748b;margin-bottom:.3rem;font-weight:600">售價 (NT$)</label>
+          <input id="dm-price" type="number" min="1" step="1" placeholder="例：80" style="width:100%;padding:.75rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:1rem;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="display:block;font-size:.85rem;color:#64748b;margin-bottom:.3rem;font-weight:600">進貨成本 (NT$)</label>
+          <input id="dm-cost" type="number" min="0" step="1" placeholder="你實際的食材成本，例：35" style="width:100%;padding:.75rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:1rem;box-sizing:border-box">
+          <div id="dm-margin-hint" style="margin-top:.5rem;font-size:.8rem;color:#94a3b8">填入售價和成本後會自動顯示毛利率</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.6rem;margin-top:1.5rem;flex-wrap:wrap">
+        <button class="btn-s" style="flex:1;min-width:120px;padding:.75rem;background:var(--brand);color:#fff;border:0;border-radius:.5rem;font-weight:700;cursor:pointer" onclick="confirmDishModal()">儲存</button>
+        <button class="btn-s" style="flex:1;min-width:120px;padding:.75rem;background:#f1f5f9;color:#334155;border:0;border-radius:.5rem;font-weight:600;cursor:pointer" onclick="closeDishModal()">取消</button>
+        <button id="dm-delete" style="display:none;flex:1;min-width:120px;padding:.75rem;background:#fee2e2;color:#dc2626;border:0;border-radius:.5rem;font-weight:600;cursor:pointer" onclick="deleteDishModal()">🗑️ 刪除</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════ 成本編輯 Modal ══════════ -->
 <div class="cost-modal" id="cost-modal" onclick="if(event.target===this)closeCostModal()">
@@ -3541,28 +3573,82 @@ function importMenuFromFile(ev){
   };
   reader.readAsText(file, 'utf-8');
 }
-function addDish(){
-  var name = prompt('菜色名稱？（例：滷肉飯）'); if (!name) return;
-  var price = Number(prompt('售價（NT$）？')); if (!price) return;
-  var cost = Number(prompt('進貨成本（NT$，你實際的食材成本）？')); if (isNaN(cost)) return;
+// ── 菜色 Modal 狀態 ──
+var DISH_MODAL_INDEX = -1;   // -1 = 新增；>= 0 = 編輯該 index
+function openDishModal(i){
+  DISH_MODAL_INDEX = (typeof i === 'number') ? i : -1;
+  var isEdit = DISH_MODAL_INDEX >= 0;
+  var m = isEdit ? MY_MENU[DISH_MODAL_INDEX] : null;
+  document.getElementById('dm-title').textContent = isEdit ? ('編輯「' + m.name + '」') : '新增菜色';
+  document.getElementById('dm-name').value = isEdit ? m.name : '';
+  document.getElementById('dm-name').disabled = isEdit;
+  document.getElementById('dm-price').value = isEdit ? m.price : '';
+  document.getElementById('dm-cost').value = isEdit ? m.cost : '';
+  document.getElementById('dm-delete').style.display = isEdit ? '' : 'none';
+  updateDishMarginHint();
+  document.getElementById('dish-modal').classList.add('show');
+  setTimeout(function(){ (isEdit ? document.getElementById('dm-price') : document.getElementById('dm-name')).focus(); }, 50);
+}
+function closeDishModal(){ document.getElementById('dish-modal').classList.remove('show'); DISH_MODAL_INDEX = -1; }
+function updateDishMarginHint(){
+  var p = Number(document.getElementById('dm-price').value);
+  var c = Number(document.getElementById('dm-cost').value);
+  var h = document.getElementById('dm-margin-hint');
+  if (!p || isNaN(c)){ h.textContent = '填入售價和成本後會自動顯示毛利率'; h.style.color='#94a3b8'; return; }
+  var mg = +(((p - c) / p) * 100).toFixed(1);
+  var warn = mg < (MY_THRESHOLD || 25);
+  h.innerHTML = '預估毛利率：<b style="color:' + (warn?'#dc2626':'#059669') + '">' + mg + '%</b>' + (warn ? '　⚠️ 低於警戒線 ' + (MY_THRESHOLD||25) + '%' : '　✅ 健康');
+  h.style.color = warn ? '#dc2626' : '#059669';
+}
+function confirmDishModal(){
+  var name = document.getElementById('dm-name').value.trim();
+  var price = Number(document.getElementById('dm-price').value);
+  var cost = Number(document.getElementById('dm-cost').value);
+  if (!name){ showToast('warn','請輸入菜色名稱'); return; }
+  if (!price || price <= 0){ showToast('warn','請輸入有效售價'); return; }
+  if (isNaN(cost) || cost < 0){ showToast('warn','請輸入有效成本'); return; }
+  var margin = +(((price - cost) / price) * 100).toFixed(1);
   MY_MENU = MY_MENU || [];
-  MY_MENU.push({ name: name, price: price, cost: cost, margin: +(((price - cost) / price) * 100).toFixed(1) });
-  saveMyMenu('已新增「' + name + '」');
-}
-function editDish(i){
-  var m = MY_MENU[i]; if (!m) return;
-  var act = prompt('編輯「' + m.name + '」：\n輸入新的「售價,進貨成本」（例：120,65）\n或輸入 del 刪除這道菜', m.price + ',' + m.cost);
-  if (act === null) return;
-  if (act.trim().toLowerCase() === 'del'){
-    if (confirm('確定刪除「' + m.name + '」？')) { MY_MENU.splice(i,1); saveMyMenu('已刪除「' + m.name + '」'); }
-    return;
+  if (DISH_MODAL_INDEX >= 0){
+    MY_MENU[DISH_MODAL_INDEX].price = price;
+    MY_MENU[DISH_MODAL_INDEX].cost = cost;
+    MY_MENU[DISH_MODAL_INDEX].margin = margin;
+    persistDishChange('已更新「' + name + '」');
+  } else {
+    MY_MENU.push({ name: name, price: price, cost: cost, margin: margin });
+    persistDishChange('已新增「' + name + '」');
   }
-  var p = act.split(',').map(function(x){ return Number(x.trim()); });
-  if (p.length === 2 && p[0] > 0 && !isNaN(p[1])){
-    m.price = p[0]; m.cost = p[1]; m.margin = +(((p[0]-p[1])/p[0])*100).toFixed(1);
-    saveMyMenu('已更新「' + m.name + '」');
-  } else { if(window.showToast) showToast('warn','格式不對，請輸入像 120,65'); }
+  closeDishModal();
 }
+function deleteDishModal(){
+  if (DISH_MODAL_INDEX < 0) return;
+  var m = MY_MENU[DISH_MODAL_INDEX];
+  if (!confirm('確定刪除「' + m.name + '」？')) return;
+  MY_MENU.splice(DISH_MODAL_INDEX, 1);
+  persistDishChange('已刪除「' + m.name + '」');
+  closeDishModal();
+}
+// Demo 模式本地更新；登入後同步到後端
+function persistDishChange(msg){
+  if (typeof renderMyMenu === 'function') renderMyMenu();
+  if (pgAuth()) {
+    saveMyMenu(msg);
+  } else {
+    showToast('success', msg + '（Demo 模式，登入後才會同步到你的 LINE）');
+  }
+}
+// 保留舊入口相容性
+function addDish(){ openDishModal(); }
+function editDish(i){ openDishModal(i); }
+
+// 輸入時即時顯示毛利率
+document.addEventListener('input', function(e){
+  if (e.target && (e.target.id === 'dm-price' || e.target.id === 'dm-cost')) updateDishMarginHint();
+});
+// Esc 關閉 modal
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && document.getElementById('dish-modal')?.classList.contains('show')) closeDishModal();
+});
 async function saveMyMenu(msg){
   var auth = pgAuth(); if (!auth) return;
   try {
