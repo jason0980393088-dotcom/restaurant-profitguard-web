@@ -2794,7 +2794,7 @@ let toastTimer;
 function showToast(type, msg){
   const t=document.getElementById('toast');
   t.className='toast '+type+' show';
-  const icons={success:'✓',warn:'⚠️',info:'ℹ️'};
+  const icons={success:'✓',warn:'⚠️',info:'ℹ️',error:'❌'};
   document.getElementById('toast-icon').textContent=icons[type]||'ℹ️';
   document.getElementById('toast-msg').textContent=msg;
   clearTimeout(toastTimer);
