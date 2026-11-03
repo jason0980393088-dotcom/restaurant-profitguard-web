@@ -1259,7 +1259,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .l-nav .nav-links{gap:1rem!important;font-size:.78rem!important;}
 }
 @media(max-width:620px){
-  .l-nav .nav-links{display:none!important;}
+  /* 手機版：藏文字連結和語言 chip，保留 LINE 登入／免費試用 兩顆 CTA */
+  .l-nav .nav-links{display:flex!important;gap:.4rem!important;align-items:center;}
+  .l-nav .nav-links > span{display:none!important;}
+  .l-nav .nav-links .nav-lang-wrap{display:none!important;}
+  .l-nav .nav-links button{display:inline-flex!important;padding:.4rem .7rem!important;font-size:.72rem!important;min-height:36px;}
+}
+@media(max-width:400px){
+  /* 超窄螢幕：只保留主 CTA「免費試用 30 天」 */
+  .l-nav .nav-links button:first-of-type{display:none!important;}
 }
 
 /* #3 hb-fill 顏色強制走 palette（蓋過內嵌 style） */
