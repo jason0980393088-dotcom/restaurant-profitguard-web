@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Restaurant-profitguard — 餐廳利潤小幫手</title>
 <meta name="theme-color" content="#FDFBF4">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1381,7 +1382,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         </select>
       </label>
       <button class="btn-cta" id="nav-login" style="background:#06C755;box-shadow:0 4px 12px rgba(6,199,85,.35)" onclick="lineLogin()">LINE 登入</button>
-      <button class="btn-cta" onclick="lineLogin()">免費試用 14 天</button>
+      <button class="btn-cta" onclick="lineLogin()">免費試用 30 天</button>
     </div>
   </nav>
 
@@ -1415,15 +1416,15 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
 
   <div class="stats">
     <div class="stats-inner">
-      <div><div class="s-num">3.2%</div><div class="s-label">平均毛利率提升</div></div>
+      <div><div class="s-num">目標 3%</div><div class="s-label">毛利率提升目標</div></div>
       <div><div class="s-num">5min</div><div class="s-label">上線所需時間</div></div>
-      <div><div class="s-num">14天</div><div class="s-label">免費試用，隨時取消</div></div>
+      <div><div class="s-num">30天</div><div class="s-label">免費試用，隨時取消</div></div>
     </div>
   </div>
 
   <div class="pricing" id="pricing">
     <h2>簡單定價，續訂越久越划算</h2>
-    <div class="pricing-sub">一般／中等方案享一個月免費試用，無需綁定信用卡</div>
+    <div class="pricing-sub">一般／中等方案享 30 天免費試用，無需綁定信用卡</div>
     <div class="p-grid">
       <div class="p-card card-hover">
         <div class="p-name">一般方案 Starter</div>
@@ -1431,7 +1432,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         <div class="p-meta">管理 1 家店</div>
         <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#FFF4E6;color:#C77700;font-size:.72rem;font-weight:600;margin-bottom:.5rem">食材成本掃描</div>
         <ul class="p-list"><li>管理一家店</li><li>LINE 即時預警推播</li><li>AI 改善建議 8 次/月</li><li>毛利警戒線制定</li></ul>
-        <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:.6rem;font-size:.74rem;color:#475569;line-height:1.6">🎁 一個月免費試用<br>續訂半年送 <b>2</b> 個月・一年送 <b>4</b> 個月（以此類推）</div>
+        <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:.6rem;font-size:.74rem;color:#475569;line-height:1.6">🎁 30 天免費試用<br>續訂半年送 <b>2</b> 個月・一年送 <b>4</b> 個月（以此類推）</div>
         <button class="btn-p btn-p-o" onclick="lineLogin()">用 LINE 開始試用</button>
       </div>
       <div class="p-card hot card-hover">
@@ -1441,7 +1442,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         <div class="p-meta">管理 3 家店</div>
         <div class="p-tag" style="display:inline-block;padding:.2rem .55rem;border-radius:8px;background:#E0F2FE;color:#0369A1;font-size:.72rem;font-weight:600;margin-bottom:.5rem">✨ 真實全成本毛利率</div>
         <ul class="p-list"><li>一般方案所有功能</li><li>管理三家店</li><li>AI 改善建議 12 次/月</li><li>POS 系統自動串接</li><li><b>真實全成本毛利率分析</b></li></ul>
-        <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#EFF6FF;border:1px dashed #93C5FD;border-radius:.6rem;font-size:.74rem;color:#1D4ED8;line-height:1.6">🎁 一個月免費試用<br>續訂半年送 <b>3</b> 個月・一年送 <b>6</b> 個月（以此類推）</div>
+        <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#EFF6FF;border:1px dashed #93C5FD;border-radius:.6rem;font-size:.74rem;color:#1D4ED8;line-height:1.6">🎁 30 天免費試用<br>續訂半年送 <b>3</b> 個月・一年送 <b>6</b> 個月（以此類推）</div>
         <button class="btn-p btn-p-w" onclick="lineLogin()">用 LINE 開始試用</button>
       </div>
       <div class="p-card card-hover">
@@ -1450,7 +1451,7 @@ span[style*="#dc2626"]{color:var(--brand)!important;}
         <div class="p-meta">連鎖品牌・多店</div>
         <ul class="p-list"><li>一對一顧問管理</li><li>AI 改善建議 無限量</li><li>中等方案所有功能</li><li>多分店集中管理</li><li>POS / REST API 串接・簽 NDA</li></ul>
         <div style="margin:0 0 1rem;padding:.6rem .75rem;background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:.6rem;font-size:.74rem;color:#475569;line-height:1.6">續訂一年 <b>95 折</b>（無免費試用期）</div>
-        <button class="btn-p btn-p-g" onclick="showToast('info','我們的銷售團隊將在 24 小時內聯絡你！')">聯絡我們</button>
+        <button class="btn-p btn-p-g" onclick="contactEnterprise()">聯絡我們</button>
       </div>
     </div>
   </div>
@@ -2470,6 +2471,50 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+  // Demo 模式：未登入點「查看 Demo」注入樣本資料
+  if (id === 'screen-dashboard' && !pgAuth() && !MY_MENU) {
+    loadDemoMenu();
+  }
+}
+
+// Enterprise 方案 CTA：開啟信件並預填內容，Jason 真的能收到 lead
+function contactEnterprise(){
+  var subject = encodeURIComponent('餐廳利潤小幫手 Enterprise 詢問');
+  var body = encodeURIComponent(
+    '你好，我想了解企業方案，請聯絡我。\n\n' +
+    '公司名稱：\n' +
+    '聯絡人：\n' +
+    '電話／LINE：\n' +
+    '分店數：\n' +
+    '目前主要痛點：\n'
+  );
+  window.location.href = 'mailto:jason0980393088@gmail.com?subject=' + subject + '&body=' + body;
+  if (window.showToast) showToast('info','已開啟信件草稿，填完按「寄出」即可');
+}
+
+// Demo 示範菜單（未登入時展示）
+function loadDemoMenu(){
+  MY_MENU = [
+    { name: '滷肉飯',       price: 80,  cost: 29, margin: 63.8 },
+    { name: '排骨便當',     price: 100, cost: 55, margin: 45.0 },
+    { name: '雞腿便當',     price: 110, cost: 48, margin: 56.4 },
+    { name: '蟹粉小籠包',   price: 180, cost: 145, margin: 19.4 },
+    { name: '蝦仁燒賣',     price: 160, cost: 134, margin: 16.5 },
+    { name: '牛肉麵',       price: 150, cost: 72, margin: 52.0 },
+    { name: '滷味拼盤',     price: 120, cost: 38, margin: 68.3 }
+  ];
+  MY_THRESHOLD = 25;
+  if (typeof renderMyMenu === 'function') renderMyMenu();
+  // Demo 綠條提示
+  var host = document.querySelector('#screen-dashboard .dh-main') || document.querySelector('#screen-dashboard');
+  if (host && !document.getElementById('demo-ribbon')){
+    var r = document.createElement('div');
+    r.id = 'demo-ribbon';
+    r.style.cssText = 'background:#FEF3C7;border:1px solid #F59E0B;color:#78350F;padding:.6rem 1rem;border-radius:.5rem;margin:0 0 1rem;font-size:.85rem;text-align:center;font-weight:600';
+    r.innerHTML = '👀 Demo 模式・使用範例資料・' +
+      '<a href="#" onclick="lineLogin();return false" style="color:#B45309;text-decoration:underline;font-weight:700">用 LINE 登入後看自己的真實數字 →</a>';
+    host.insertBefore(r, host.firstChild);
+  }
 }
 
 // ── ONBOARD ───────────────────────────────────────────────────
@@ -2806,7 +2851,7 @@ function scrollToSection(id){
     ['每天早上 7:30 自動執行，掃描全部菜色毛利率，無需人工操作，結果直達你的 LINE。','Runs automatically at 7:30 every morning, scanning every dish’s margin with no manual work — results delivered straight to your LINE.'],
     ['不只告訴你「哪道菜有問題」，還告訴你「怎麼調整食材用量、調多少售價」，有依據可執行。','Not just which dish has a problem, but exactly how to adjust ingredient amounts and pricing — actionable and data-backed.'],
     ['一個帳號管理多家門市，總部即時看到各店毛利健康狀況，異常門市立即標紅。','Manage multiple stores from one account; HQ sees each store’s margin health in real time, with troubled stores flagged in red.'],
-    ['所有方案均含 14 天免費試用，無需綁定信用卡','All plans include a 14-day free trial — no credit card required'],
+    ['所有方案均含 30 天免費試用，無需綁定信用卡','All plans include a 30-day free trial — no credit card required'],
     ['每天早上 7:30','Every morning at 7:30'],
     ['AI 主動告訴你','AI proactively tells you'],
     ['哪道菜在虧錢','Which dishes are losing money'],
@@ -2815,14 +2860,14 @@ function scrollToSection(id){
     ['每日自動掃描','Daily Auto-Scan'],
     ['AI 精準建議','Precise AI Advice'],
     ['多門市管理','Multi-Store Management'],
-    ['平均毛利率提升','Average margin increase'],
+    ['毛利率提升目標','Target margin uplift'],['目標 3%','Target 3%'],
     ['上線所需時間','Time to go live'],
-    ['14天','14 days'],
+    ['30天','30 days'],
     ['免費試用，隨時取消','Free trial, cancel anytime'],
-    ['免費試用 14 天','Free 14-Day Trial'],
+    ['免費試用 30 天','Free 30-Day Trial'],
     ['綁定','Bind'],
     ['簡單定價，續訂越久越划算','Simple pricing — the longer you renew, the more you save'],
-    ['一般／中等方案享一個月免費試用，無需綁定信用卡','Starter & Growth include a 1-month free trial, no credit card required'],
+    ['一般／中等方案享 30 天免費試用，無需綁定信用卡','Starter & Growth include a 30-day free trial, no credit card required'],
     ['一般方案 Starter','Starter'],
     ['/月','/mo'],
     ['起/月','from/mo'],
